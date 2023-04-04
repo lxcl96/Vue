@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        let obj_1 = {x:100};
+        let obj_2 = {y:200};
+
+        //想要通过obj_2操作obj_1中的x属性
+        Object.defineProperty(obj_2,'x',{
+            get(){
+                return obj_1.x;
+            },
+            set(value){
+                obj_1.x = value;
+            }
+        })
+    </script>
+</body>
+</html>

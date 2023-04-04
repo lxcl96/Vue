@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="text/javascript" src="../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+        Hello {{name}}.
+    </div>
+
+
+    <script type="text/javascript">
+
+        const app = new Vue({
+            //el: '#root', 
+            // data: function(){ 
+            //     //这里的this是app，即vue实例
+            //     return {
+            //         name: "yaord"
+            //     }
+            // }
+            data(){ 
+                //这里的this是app，即vue实例
+                return {
+                    name: "yaord"
+                }
+            }
+        });
+
+        //可以使用函数玩花活,2秒后才会变化
+        setTimeout(()=>{
+            app.$mount('#root');
+        },2000);
+    </script>
+    
+</body>
+</html>

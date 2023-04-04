@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="text/javascript" src="../../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+       <button v-on:click="func1">点我</button>
+       <!-- 简化写法，如果传递参数不写$event会导致event丢失-->
+       <button @click="func2(66,$event)">点我2</button>
+    </div>
+
+
+    <script type="text/javascript">
+
+        //func(){}//写在这里不行，因为只能接受vue中的函数
+        const vm = new Vue({
+            el: '#root', 
+            data: { 
+                World: new Date().toLocaleDateString()
+                //func(){}//可以写在这里，但是会对其进行数据代理操作，浪费性能
+            },
+            methods:{
+                func1(event){ //默认传递一个event参数
+                    console.log(event);
+                    alert("hello 1");
+                },
+                func2(num,event){ //默认传递一个event参数
+                    console.log(num);//第一个参数66
+                    console.log(event); //第二个参数event
+                    alert("hello 2");
+                },
+
+            }
+            
+            
+        });
+
+    </script>
+    
+</body>
+</html>

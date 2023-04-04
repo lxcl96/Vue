@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        let number = 18;
+        let person = {
+            name: "yaord",
+            sex: "male",
+            //age: 18
+        }
+        
+        /**
+         * param1:需要修改的对象
+         * param2:要添加的属性名
+         * param3:属性的配置信息
+         * 
+         **/
+        // Object.defineProperty(person,'age',{
+        //     value:18, //设置新属性的值
+        //     //enumerable:true,//设置新属性是否可以进行枚举，默认false，即通过in方法无法遍历到此属性
+        //     writable:true,//设置新属性是否可以进行修改值，默认false，无法二次修改
+        //     configurable:true//设置新属性是否可以删除，默认是false，无法将其删除
+        // })
+        Object.defineProperty(person,'age',{
+             //当有人给person的age属性赋值，就会调用该方法
+            set(value){
+                console.log("正在进行赋值操作！");
+                number = value;
+            },
+            //当有人访问到person的age属性，就会调用该方法
+            get(){
+                console.log("正在进行读取操作！");
+                return number;
+            }
+        })
+
+    </script>
+</body>
+</html>

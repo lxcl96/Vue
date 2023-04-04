@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .c1{
+            background-color: aqua;
+        }
+    </style>
+    <script src="../../lib/vue.js"></script>
+</head>
+<body>
+    <div id="root">
+        Hello 
+        <a href="baidu.com" @click.prevent="func">友链</a>
+
+
+        <div class="c1" @click.capture="f1('c1')">
+            1 <br>
+            <button @click.stop="f1('c2')">2</button>
+        </div>
+
+        <br>
+        <br>
+        <br>
+        <button @click.once="f1(1)">只有第一次会生效</button>
+
+        <br>
+        <br>
+        <br>
+        <div class="c1" @click.self="f1('c3')">
+            3 <br>
+            <button @click="f1('c4')">4</button>
+        </div>
+        <br>
+        <br>
+        <br>
+        <a href="baidu.com" @click="f2">baidu</a>
+    
+    </div>
+
+   
+
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            methods:{
+                func(event){
+                    console.log(event);
+                    // event.preventDefault();
+                },
+                f1(num){
+                    alert(num);
+                },
+                f2(){
+                    for (let i = 0; i < 100000; i++) {
+                        console.log("#");
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
