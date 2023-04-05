@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="text/javascript" src="../../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+        姓：<input type="text" v-model="first"> <br>
+        名：<input type="text" v-model="last"> <br>
+        全名：{{fullName}} <br>
+        全名：{{fullName}}<!--从缓存中取-->
+    </div>
+
+
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: { 
+               first:'',
+               last:''
+            },
+            /**
+             * 计算属性调用时机：
+             *   1.第一次读取计算属性时，然后会把该属性保存在缓存中
+             *   2.当计算属性所依赖的数据如first发生变化时，也会调用
+             * */
+            //计算属性
+            computed:{
+                //属性名，也会挂载到vm上，和data中属性数据一样
+                fullName:{
+                    //此处也是用 数据代理
+                    get(){
+                        //此处的this为vm
+                        console.log(this);
+                        return this.first + ' - ' + this.last;    
+                    },
+                    
+                    /**
+                     * set调用时机：
+                     *    修改fullNam的值的时候
+                     * @params value fullName修改后的值
+                     * */
+                    set(value){
+                        //此处的this为vm
+                        console.log(this);
+                        this.first = value.split('-')[0].trim();
+                        this.last = value.split('-')[1].trim();
+                    }
+                }
+            }
+        });
+
+    </script>
+    
+</body>
+</html>

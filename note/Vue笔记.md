@@ -437,11 +437,261 @@ Object.defineProperty(obj_2,'x',{
 Vue.config.keyCodes.huiche=13;//定义一个回车
 ```
 
-## 1.9 计算属性
+## 1.9 计算属性 - computed
+
+对vue中data属性计算而来，称之为计算属性，放在computed属性中：
+
+***计算属性中get方法调用时机：***
+
++ 第一次读取计算属性时，然后会把该属性**保存在缓存中（下面再次调用会从缓存中取，而不会再次调用get方法）**
++ 当计算属性所依赖的数据如first发生变化时，也会调用get方法
+
+```html
+<body> 
+    <div id="root">
+        姓：<input type="text" v-model="first"> <br>
+        名：<input type="text" v-model="last"> <br>
+        全名：{{fullName}} <br>
+        全名：{{fullName}}<!--从缓存中取-->
+    </div>
+
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: { 
+               first:'',
+               last:''
+            },
+            /**
+             * 计算属性调用时机：
+             *   1.第一次读取计算属性时，然后会把该属性保存在缓存中
+             *   2.当计算属性所依赖的数据如first发生变化时，也会调用
+             * */
+            //计算属性
+            computed:{
+                //属性名，也会挂载到vm上，和data中属性数据一样
+                fullName:{
+                    //此处也是用 数据代理
+                    get(){
+                        //此处的this为vm
+                        console.log(this);
+                        return this.first + ' - ' + this.last;    
+                    },
+                    
+                    /**
+                     * set调用时机：
+                     *    修改fullNam的值的时候
+                     * @params value fullName修改后的值
+                     * */
+                    set(value){
+                        //此处的this为vm
+                        console.log(this);
+                        this.first = value.split('-')[0].trim();
+                        this.last = value.split('-')[1].trim();
+                    }
+                }
+            }
+        });
+
+    </script>
+    
+</body>
+```
+
+***优点：*** 与methods实现相比，计算属性内部有缓存机制（复用），效率更高，调试方便
+
+> ***备注：***
+>
+> + 计算属性最终会出现在vm上，直接读取使用即可
+> + 如果计算属性要被修改，那必须要写set函数去响应修改，且set中要修改计算时依赖的data数据
+
+### 1.9.1 计算属性简写
+
+当确定计算属性只读取，不修改时，即只有get函数没有set函数，可以简写为：
+
+```html
+<script type="text/javascript">
+    const vm = new Vue({
+        el: '#root', 
+        data: { 
+            first:'',
+            last:''
+        },
+        computed:{
+            //对象中方法的简写形式（注意是函数的返回值）
+            fullName(){
+                console.log(this);
+                return this.first + ' - ' + this.last;    
+            }
+        }
+    });
+</script>
+```
+
+## 1.10 监视属性 - watch
+
+用于监视vue中属性及计算属性发生的变化，**属性必须存在**。
+
+### 1.10.1 watch普通写法
+
+```html
+<body> 
+    <div id="root">
+        当前天气：{{info}} <br>
+        <button @click="isHot = !isHot">点我切换</button>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: { 
+               isHot: true
+            },
+            computed:{
+                info(){
+                    return this.isHot?"炎热":"凉爽";
+                }
+            },
+            //属性监视
+            watch:{
+                isHot: {
+                    //立即监视，即初始化时就调用handler方法
+                	immediate:true,
+                    //用于监视属性和计算属性
+                    handler(newValue,oldValue){
+                        console.log('发生了变化，',newValue,oldValue);
+                    }
+                }
+            }     
+        });
+    </script>
+</body>
+```
+
+### 1.10.2 watch进阶写法
+
+```javascript
+const vm = new Vue({
+    el: '#root', 
+    data: { 
+        isHot: true
+    },
+    computed:{
+        info(){
+            return this.isHot?"炎热":"凉爽";
+        }
+    }
+});
+// console.log(vm.isHot);//true
+/**
+ * watch参数
+ * @params1 要监视的属性名，需要带引号，否则就是属性的值了
+ * @params2 包含hadler配置属性对象
+ **/	
+//vm.$watch(vm.isHot,{ //这样是属性的值，而不是属性的名
+vm.$watch('isHot',{
+    immediate:true,
+    handler(newValue,oldValue){
+        console.log("isHot发生了变化 ",newValue,oldValue);
+    }
+})
+```
 
 
 
-# 2、Vue组件化编程
+### 1.10.3 深度监视 watch-deep
+
+用于监视多级结构中的所有属性的变化（**而不是对象本身的内存地址**）
+
+```html
+<body> 
+    <div id="root">
+        当前天气：{{numbers.a}} <br>
+        <button @click="numbers.a++">点我+1</button>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: { 
+               numbers:{
+                a:1,
+                b:1
+               }
+            }
+        });
+        vm.$watch('isHot',{
+            ...
+            }
+        })
+    </script>
+</body>
+```
+
++ **监视多级结构中的某个属性的变化**，如：numbers中的a
+
+  ```javascript
+  vm.$watch('numbers.a',{//多级结构
+      handler(newValue,oldValue){
+      console.log("a发生了变化 ",newValue,oldValue);
+      }
+  })
+  ```
+
++ **监视多级结构中的所有属性的变化**，如：numbers中的a和b的值变化
+
+  ```javascript
+  //如果不加deep属性，监控的是numbers对象本身，而其本身是地址引用，内部值变化检测不到
+  vm.$watch('numbers',{
+      deep:true,//表示监控多级结构的属性，而不是多级结构对象本身
+      handler(newValue,oldValue){
+          console.log("numbers属性发生了变化 ",newValue,oldValue);
+      }
+  })
+  ```
+
+### 1.10.4 深度监视简写形式
+
+不使用watch的其他配置属性：如immediate、deep属性时，可以用一下简写，即handler可以省略：
+
+```javascript
+//定义vue加watch
+const vm = new Vue({
+    el: '#root', 
+    data: { 
+        isHot: true
+    },
+    computed:{
+        info(){
+            return this.isHot?"炎热":"凉爽";
+        }
+    },
+    watch:{
+        //直接省略了handler，代价无法配置了
+        isHot(newValue,oldValue){
+            console.log(1,newValue,oldValue);
+        }
+    }
+});
+
+
+//$watch简写形式，即省略了handler
+vm.$watch('isHot',function(newValue,oldValue){
+
+});
+```
+
+### 1.10.5 computed与watch的区别
+
++ computed能完成的功能，watch都能完成
++ watch能完成的功能，computed不一定能完成，例如：watch可以进行异步操作
+
+> 1. 所有被vue管理的函数，最好写成普通函数，这样this指向的才是vm 或 组件实例对象
+> 2. 所有不被Vue所管理的函数（定时器的回调函数、ajax的回调函数、Promise的回调函数），最好写成回调函数，这样this指向才是vm或组件实例对象
+
+
+
+
+
+# 2、Vue 组件化编程
 
 
 

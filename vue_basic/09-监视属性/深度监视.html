@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="text/javascript" src="../../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+        a {{numbers.a}} <br>
+        <button @click="numbers.a++">点我+1</button> <br>
+        b {{numbers.b}} <br>
+        <button @click="numbers.b++">点我+1</button>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: { 
+               numbers:{
+                a:1,
+                b:1
+               }
+            }
+        });
+        // vm.$watch('numbers.a',{
+        //     handler(newValue,oldValue){
+        //         console.log("a发生了变化 ",newValue,oldValue);
+        //     }
+        // });
+        vm.$watch('numbers',{
+            deep:true,
+            handler(newValue,oldValue){
+                console.log("numbers属性发生了变化 ",newValue,oldValue);
+            }
+        })
+    </script>
+    
+</body>
+</html>

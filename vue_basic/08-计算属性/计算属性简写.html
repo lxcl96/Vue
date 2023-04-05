@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="text/javascript" src="../../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+        姓：<input type="text" v-model="first"> <br>
+        名：<input type="text" v-model="last"> <br>
+        全名：{{fullName}} <br>
+        全名：{{fullName}}<!--从缓存中取-->
+    </div>
+
+
+    <script type="text/javascript">
+
+        const vm = new Vue({
+            el: '#root', 
+            data: { 
+               first:'li',
+               last:'si'
+            },
+            computed:{
+                //对象中方法的简写形式（注意是函数的返回值）
+                fullName(){
+                    //console.log(this);
+                    return this.first + ' - ' + this.last;    
+                }
+            }
+        });
+
+    </script>
+    
+</body>
+</html>

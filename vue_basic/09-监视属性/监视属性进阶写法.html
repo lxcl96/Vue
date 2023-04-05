@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="text/javascript" src="../../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+        当前天气：{{info}} <br>
+        <button @click="isHot = !isHot">点我切换</button>
+    </div>
+
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: { 
+               isHot: true
+            },
+            computed:{
+                info(){
+                    return this.isHot?"炎热":"凉爽";
+                }
+            },
+            watch:{
+                isHot(newValue,oldValue){
+                    console.log(1,newValue,oldValue);
+                }
+            }
+        });
+        // console.log(vm.isHot);//true
+        /**
+         * watch参数
+         * @params1 要监视的属性名，需要带引号，否则就是属性的值了
+         * @params2 包含hadler配置属性对象
+         **/
+        //vm.$watch(vm.isHot,{ //这样是属性的值，而不是属性的名
+        // vm.$watch('isHot',{
+        //     immediate:true,
+        //     handler(newValue,oldValue){
+        //         console.log("isHot发生了变化 ",newValue,oldValue);
+        //     }
+        // });
+        //watch简写形式，即省略了handler
+        // vm.$watch('isHot',function(newValue,oldValue){
+
+        // });
+    </script>
+    
+</body>
+</html>

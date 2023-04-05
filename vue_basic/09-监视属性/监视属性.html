@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="text/javascript" src="../../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+        当前天气：{{info}} <br>
+        <button @click="isHot = !isHot">点我切换</button>
+    </div>
+
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: { 
+               isHot: true
+            },
+            computed:{
+                info(){
+                    return this.isHot?"炎热":"凉爽";
+                }
+            },
+            //属性监视
+            watch:{
+                //立即监视，即初始化时就调用handler方法
+                immediate:true,
+                isHot: {
+                    //用于监视属性和计算属性
+                    handler(newValue,oldValue){
+                        console.log('发生了变化，',newValue,oldValue);
+
+                    }
+                }
+            }     
+        });
+    </script>
+    
+</body>
+</html>
