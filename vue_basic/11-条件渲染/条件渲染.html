@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="text/javascript" src="../../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+        <h1 v-show="1 === 2">你好</h1> <br>
+        <h1 v-if="1 === 2">再见1</h1>
+        <h1 v-else-if="1 === 2">再见2</h1>
+        <h1 v-else="1 === 2">再见3</h1>
+
+        <hr>
+        <template v-show='1 ===1 '>
+            <h1>再见1</h1>
+            <h1>再见2</h1>
+            <h1>再见3</h1>
+        </template>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: {
+            }
+        });
+    </script>
+    
+</body>
+</html>

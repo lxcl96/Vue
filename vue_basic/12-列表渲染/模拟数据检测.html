@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模拟vue中数据检测</title>
+</head>
+<body>
+    
+
+    <script>
+        let data = {
+            name:"yaord",
+            age:18
+        }
+
+        //创建一个监视 的实例对象，用于监视data中属性的变化【核心 new】
+        const obj = new Observer(data);
+        //console.log(obj);
+        const vm = {};
+        vm._data = data = obj;
+
+        function Observer(obj){
+            //汇总对象中所有的属性形成一个数组
+            const keys = Object.keys(obj);
+            //遍历
+            keys.forEach((item)=>{
+                //数据代理，代理在当前的Observer对象本身this，如果代理在data商会造成无线调用，导致栈溢出
+                //console.log(this);
+                Object.defineProperty(this,item,{
+                    enumerable:true,
+                    configurable:true,
+                    get(){
+                        return obj[item];
+                    },
+                    set(val){
+                        console.log("数据被改变，准备解析模版，生成虚拟dom。。。。");
+                        obj[item] = val;
+                    }
+                })
+            }); 
+        }
+    </script>
+</body>
+</html>

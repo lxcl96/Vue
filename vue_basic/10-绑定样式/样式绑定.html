@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .demo{
+            background-color: aqua;
+        }
+        .demo1{
+            border: solid 1px;
+        }
+        .demo2{
+            border-radius: 40px;
+        }
+    </style>
+    <script type="text/javascript" src="../../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+        <!-- 注意:class其实就是 v-bind:class的缩写
+            :class里面加引号的是字符串，不加引号的是变量，注意区分
+            -->
+        <div class="demo" :class="'demo1'">
+            string形式
+        </div> <br>
+        <!--  可以用数组，使用多个样式-->
+        <div class="demo" :class="styleArr">
+            arr形式
+        </div> <br>
+        <!--  可以用对象，使用多个样式-->
+        <div class="demo" :class="styleObj">
+            object形式
+        </div> <br>
+
+        <div class="demo" :style="styleObj">
+            Style绑定object形式
+        </div> <br>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: {
+                styleArr:['demo1','demo2'], 
+                styleObj:{
+                    demo:false,
+                    demo1:true,
+                    demo2:true
+                },
+                styleObj:{
+                    fontSize:40+'px',//对应style原本的属性 font-size 的驼峰写法
+                    backgroundColor:'red'
+                }
+            }
+        });
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="text/javascript" src="../../lib/vue.js"></script>
+</head>
+<body> 
+    <div id="root">
+        <ul>
+            <li v-for="(person,index) in persons" :key="index">
+                {{person.name}} --- {{person.age}}
+            </li>
+
+
+            <hr><hr>
+            <li v-for="(number,index) in 5" :key="index">
+                {{number}} --- {{index}}
+            </li>
+        </ul>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: {
+                persons:[
+                    {name:'张三',age:18},
+                    {name:'李四',age:19},
+                    {name:'王五',age:20}
+                ]
+            }
+        });
+    </script>
+    
+</body>
+</html>

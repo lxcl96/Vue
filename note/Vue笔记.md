@@ -687,6 +687,406 @@ vm.$watch('isHot',function(newValue,oldValue){
 > 1. 所有被vue管理的函数，最好写成普通函数，这样this指向的才是vm 或 组件实例对象
 > 2. 所有不被Vue所管理的函数（定时器的回调函数、ajax的回调函数、Promise的回调函数），最好写成回调函数，这样this指向才是vm或组件实例对象
 
+## 1.11 class与style绑定
+
+在应用界面中, 某个(些)元素的样式是变化的，class/style 绑定就是专门用来实现动态样式效果的技术
+
+### 1.11.1 class绑定
+
++ **字符串用法，**适用于**样式的类名不确定，需要动态指定**
++ **数组用法，**适用于**要绑定的样式个数不确定，名字也不确定**
++ **对象用法，**适用于**要绑定的样式确定，个数确定，名字也确定，但是要动态决定用不用**
+
+```html
+<body> 
+    <div id="root">
+        <!-- 注意:class其实就是 v-bind:class的缩写
+            :class里面加引号的是字符串，不加引号的是变量，注意区分
+            -->
+        <div class="demo" :class="'demo1'">
+            string形式
+        </div> <br>
+        <!--  可以用数组，使用多个样式-->
+        <div class="demo" :class="styleArr">
+            arr形式
+        </div> <br>
+        <!--  可以用对象，使用多个样式-->
+        <div class="demo" :class="styleObj">
+            object形式
+        </div> <br>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: {
+                //
+                styleArr:['demo1','demo2'], 
+                //对象用法
+                styleObj:{
+                    demo:false,
+                    demo1:true,
+                    demo2:true
+                }
+            }
+        });
+    </script>
+    
+</body>
+```
+
+### 1.11.2 style绑定
+
+常用的就是object写法
+
+```html
+<body> 
+    <div id="root">
+        <!-- 就是v-bind-->
+        <div class="demo" :style="styleObj">
+            Style绑定object形式
+        </div> <br>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: {
+                styleObj:{
+                    //key必须是实际存在的
+                    fontSize:40+'px',//对应style原本的属性 font-size 的驼峰写法
+                    backgroundColor:'red'
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+```
+
+## 1.12 条件渲染
+
+### 1.12.1 条件渲染指令
+
++ `v-show='xxx'`，xxx为表达式，返回结果true或false决定当前元素是否显示
+
+  ```html
+  <!--底层原理就是 style='display:none'-->
+  <h1 v-show="1 === 2">你好</h1>
+  ```
+
++ `v-if='xxx'`，xxx为表达式，返回结果true或false决定当前元素是否显示
+
+  ```html
+  <!--dom中就没这个元素了，彻底删除 -->
+  <h1 v-if="1 === 2">再见1</h1>
+  <h1 v-else-if="1 === 2">再见2</h1>
+  <!-- 无论v-else的条件是true 或false都会显示-->
+  <h1 v-else>再见3</h1> 
+  ```
+
+  > ***注意：***使用`v-if`,`v-else-if`,`v-else`必须紧挨着
+  >
+  > ```html
+  > <h1 v-if="1 === 2">再见1</h1>
+  > <h1>@</h1> <!-- 不允许，后面不会显示，会报错-->
+  > <h1 v-else-if="1 === 2">再见2</h1>
+  > <h1 v-else>再见3</h1> 
+  > ```
+
+### 1.12.2 比较v-if和v-show
+
++ `v-if`会彻底删除dom节点
++ `v-show`只是通过style样式控制是否显示，频繁改变用`v-show`
+
+### 1.12.3 template
+
+***template必须配合`v-if`使用***
+
+```html
+<!-- 控制整体的显示，但是最终会在dom中多一层div，会影响css选择器的层次-->
+<div v-show='1 ===2 '>
+    <h1>再见1</h1>
+	<h1>再见2</h1>
+	<h1>再见3</h1>
+</div>
+
+<!-- vue中特有template标签，搭配v-if进行条件判断，最后dom中不会有template标签-，所以不会影响层次->
+<template v-show='1 ===2 '>
+    <h1>再见1</h1>
+	<h1>再见2</h1>
+	<h1>再见3</h1>
+</template>
+```
+
+## 1.13 列表渲染
+
+### 1.13.1 `v-for`
+
+`v-for`可用于**数组，对象，字符串以及纯数字**
+
++ **数组**：第一个形参person就是值，第二个形参index就是序号、下标
++ **对象**：第一个形参person就是值value，第二个形参index就是key
++ **字符串**：第一个形参person就是值，第二个形参index就是下标、序号
++ **纯数字**：第一个形参person就是数值（从1开始），第二个形参index就是下标、序号（从0开始）
+
+```html
+<!-- 
+	:key表示当前循环的唯一标志，不能重复，可以用对象person本身的id，也可以用序号index，肯定不会重复（必须加上）
+	-->
+<!-- item in items 等同于 item of items-->
+<li v-for="(person,index) in persons" :key="index">
+	{{person.name}} --- {{person.age}}
+</li>
+```
+
+> 遍历纯数字：
+>
+> ```html
+> <li v-for="(number,index) in 5" :key="index">
+> 	{{number}} --- {{index}}
+> </li>
+> ```
+>
+> <img src='img\Vue笔记\image-20230407100031441.png'>
+
+### 1.13.2 ==`v-for`中的key==
+
+官网：https://v2.cn.vuejs.org/v2/api/#key
+
+问题：如原来的顺序是：张三，李四，王五，现在要把赵六放在数组第一个，那么就会出现问题
+
+<img src='img\Vue笔记\image-20230407104017532.png'>
+
++ **如果没有指定`v-for`中的key，vue默认会使用序号index**
++ **如果出现破环原有顺序的数据，如添加，删除等，使用index作为key则会导致虚拟dom复用失败，数据结构出现错乱**
++ **推荐使用唯一标识**
+
+<img src='img\Vue笔记\image-20230407102232057.png'>
+
+### 1.13.3 列表过滤*
+
+```html
+<body> 
+    <div id="root">
+        <h2>人员列表</h2>
+        模糊搜索：<input type="text" placeholder="请输入人名" v-model:value="filter">
+        <ul>
+            <!-- 也可以用watch和computed写 -->
+            <li v-for="(person,index) in persons" :key="person.id" v-show="person.name.indexOf(filter)>-1">
+                {{person.name}} -- {{person.age}} -- {{person.sex}}
+            </li>
+        </ul>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: {
+                persons:[
+                    {id:001,name:'马冬梅',age:18,sex:'女'},
+                    {id:002,name:'周冬雨',age:19,sex:'女'},
+                    {id:003,name:'周杰伦',age:20,sex:'男'},
+                    {id:004,name:'温兆伦',age:21,sex:'男'}      
+                ],
+                filter:''
+            }
+        });
+    </script>
+</body>
+```
+
+### 1.13.4 列表排序
+
+```html
+<body> 
+    <div id="root">
+        <h2>人员列表</h2>
+        模糊搜索：<input type="text" placeholder="请输入人名" v-model="filter">
+        <button @click="sortType=2">年龄升序</button>
+        <button @click="sortType=1">年龄降序</button>
+        <button @click="sortType=0">原顺序</button>
+        <ul>
+            <!-- 也可以用watch和computed写 -->
+            <li v-for="(person,index) in filPersons" :key="person.id">
+                {{person.name}} -- {{person.age}} -- {{person.sex}}
+            </li>
+        </ul>
+    </div>
+    <script type="text/javascript">
+        const vm = new Vue({
+            el: '#root', 
+            data: {
+                persons:[
+                    {id:001,name:'马冬梅',age:19,sex:'女'},
+                    {id:002,name:'周冬雨',age:20,sex:'女'},
+                    {id:003,name:'周杰伦',age:18,sex:'男'},
+                    {id:004,name:'温兆伦',age:21,sex:'男'}      
+                ],
+                filter:'',
+                sortType:0//0代表原顺序，1代表降序，2代表升序
+            },
+            computed:{
+                filPersons(){
+                    let arr = this.persons.filter((item)=>{
+                            return item.name.indexOf(this.filter) > -1;
+                        });
+                    if(this.sortType) {
+                        arr=arr.sort((x,y)=>{
+                            //这样其实有个问题，每次都会比较
+                            return this.sortType===1?y.age - x.age:x.age - y.age;
+                        });
+                    }
+                    return arr;
+                }
+            }
+        });
+    </script>
+</body>
+```
+
+## 1.14 ==vue检测到数据变化的原理==
+
++ 加工data，增加对应属性的get和set方法（内部增加响应式代码，用于在数据改变时重新生成dom）
++ 让vm._data=data
++ 页面渲染
++ data数据变化，就会调用对应属性的setter方法，然后setter内部重新解析模版
++ 生成新的虚拟dom
++ 虚拟dom和真实dom对比
++ 生成页面
+
+<img src='img\Vue笔记\image-20230407143134556.png'>
+
+### 1.14.1 vue中检测对象变化原理--对象**
+
+```html
+<!-- 
+	核心是通过反向代理data的set函数中检测对象数据变化，下面进行模拟
+-->
+
+<script>
+    let data = {
+        name:"yaord",
+        age:18
+    }
+
+    //创建一个监视 的实例对象，用于监视data中属性的变化【核心 new】
+    const obj = new Observer(data);
+    //console.log(obj);
+    const vm = {};
+    vm._data = data = obj;
+
+    function Observer(obj){
+        //汇总对象中所有的属性形成一个数组
+        const keys = Object.keys(obj);
+        //遍历
+        keys.forEach((item)=>{
+            //数据代理，代理在当前的Observer对象本身this，如果代理在data商会造成无限调用，导致栈溢出
+            //console.log(this);
+            Object.defineProperty(this,item,{
+                enumerable:true,
+                configurable:true,
+                get(){
+                    return obj[item];
+                },
+                set(val){
+                    console.log("数据被改变，准备解析模版，生成虚拟dom。。。。");
+                    obj[item] = val;
+                }
+            })
+        }); 
+    }
+</script>
+```
+
+> 上面只是简单的模拟vue中的检测数据变化，且只能处理一层对象，对于**数组中的多重对象，多重对象都无法对内部的属性设置get和set**。**但vue中可以，因为底层是递归，直至最后一层不是对象**
+
+### 1.14.2 `Vue.set()`**
+
+在vue中，当我们底层没有定义一个属性变量，但是在运行时又想加入。如：student添加sex属性
+
+```javascript
+/*
+	不会报错，且值存进去了，但是页面不会发生变化{{student.sex}},这是因为：
+		这个我们新加的属性，没有被vue进行数据代理和数据劫持过，所以没有对应的getter和setter（里面进行页面渲染）方法，那么当我们修改，添加新属性是就无法动态响应新增加，修改的内容。
+*/
+vm._data.student.sex='男'；
+
+//***解决方法 Vue.set(对象，键，值) 或者vm.$set(对象，键，值)
+//vm._data.student === vm.student
+Vue.set(vm._data.student,'sex','男');
+vm.$set(vm.student,'sex','男
+        //上面两个方法会自动添加getter和setter
+```
+
+> ***`Vue.set()`方法的局限*** 
+>
+> ```javascript
+> const vm = new Vue({
+>         el: '#root', 
+>         data: {
+>         person:{
+>         name:'yaord',
+>         age:18
+>         }
+>     }
+> });
+> ```
+>
+> https://v2.cn.vuejs.org/v2/api/#Vue-set
+>
+> 此方法只能给data中的对象，第二层级（第三层级，。。。）如person添加，不能给data添加
+>
+> ```javascript
+> Vue.set(vm._data,'sex','male')//错误的
+> Vue.set(vm,'sex','male')//错误的
+> ```
+>
+> 
+
+### 1.14.3 vue中检测数组变化原理--数组**
+
+如下图，可以明显看出**vue中data中数组没有代理对应的getter和setter方法**
+
+```javascript
+//值会变，但页面不会重新渲染 因为没有触发
+vue._data.student.hobby[0]='学习'
+```
+
+<img sec='img\Vue笔记\image-20230407160626926.png'>
+
+![image-20230407160335194](D:\0\JWork\vscode\Vue\src\note\img\Vue笔记\image-20230407160335194.png)
+
++ ***使用下面7大方法进行数组操作，可以页面可以自动渲染***
+
+  ```javascript
+  vue._data.student.hobby.pop();//删除最后一个元素
+  vue.student.hobby.shift();//删除第一个元素
+  ```
+
+  <img src='img\Vue笔记\image-20230407162007422.png'>
+
++ ***使用`Vue.set()`或`vm.$set()`
+
+  ```javascript
+  //此时 key就变成了数组的下标
+  Vue.set(vue._data.student.hobby,1,'学习');
+  vm.$set(vue._data.student.hobby,0,"打球");
+  ```
+
+### 1.14.4 数据劫持
+
+数据劫持：数据中的每个数据都被vue代理了
+
+如果有人修改了data中的属性，就会被setter劫持到
+
+底层原理都是：`Object.defineProperty()`
+
+<img src='img\Vue笔记\image-20230407164351465.png'>
+
+### 1.14.4 Vue中数据检测总结**
+
+<img src='img\Vue笔记\image-20230407164526319.png'>
+
+
+
 
 
 
