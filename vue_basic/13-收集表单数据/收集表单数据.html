@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../lib/vue.js"></script>
+</head>
+<body>
+    <div id="root">
+        <form>
+            <!-- 实现点击文字，实现聚焦input -->
+            <label for="user">账号：</label>
+            <input type="text" id="user" v-model="user"><br>
+            密码：<input type="password" v-model="passwd"><br>
+            年龄；<input type="number" v-model.number="age"><br>
+            <br>
+            性别：男<input type="radio" name="sex" value='male' v-model="sex"> 女 <input type="radio" name="sex" value="female" v-model="sex">
+            <br>
+            爱好：
+                <!-- 如果不配置value属性，v-model默认读取checked属性值 -->
+                抽烟<input type="checkbox" name="hobby" value="smoke" v-model="hobby"> 
+                喝酒<input type="checkbox" name="hobby" value="drink" v-model="hobby">
+                烫头<input type="checkbox" name="hobby" value="hair" v-model="hobby">
+
+            <br>
+            tag：<select name="tag" v-model="tag">
+                    <option value="">请选择</option>
+                    <option value="a">a</option>
+                    <option value="ab">ab</option>
+                    <option value="abc">abc</option>
+                    <option value="abcd">abcd</option>
+                </select>
+            <br>
+            其他信息：<textarea v-model.lazy="other"></textarea>
+            <br>
+            <!-- 如果不配置value属性，v-model默认读取checked属性值 -->
+            <input type="checkbox" name="agree" v-model="agree"> 阅读并接受<a href="#">《用户协议》</a>
+            <br>
+            <button type="button" @click="print">提交</button>
+        </form>
+    </div>
+
+    <script>
+        const vm = new Vue({
+            el:'#root',
+            data:{
+                user:'',
+                passwd:'',
+                age: '',
+                sex:'',
+                hobby:[],
+                tag:'',
+                other:'',
+                agree:''
+            },
+            methods:{
+                print(){
+                    // 不推荐直接使用_data，建议封装成一个对象
+                    console.log(JSON.stringify(this._data));
+                }
+            }
+        });
+    </script>
+</body>
+</html>

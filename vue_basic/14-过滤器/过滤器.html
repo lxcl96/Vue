@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="../../lib/vue.js"></script>
+    <script src="../../lib/dayjs.min.js"></script>
+</head>
+<body>
+    <div id="root">
+        <h2>显示格式化后的时间</h2>
+        时间戳：{{time}} <br>
+        <!-- 多个过滤器 | 连续拼接，顺序执行， 前一个作为后一个参数，被vue自动调用
+            如果响应传递别的参数，直接传递即可，但是底层默认第一个参数是|管道符前一个的值
+            -->
+        时间：{{time|datetime('YYYY-MM-DD HH:mm:sss ')|mySlice}} <br>
+    </div>
+    <script>
+        //全局过滤器，任意组件都可以使用
+        //过滤器名 参数
+        Vue.filter('mySlice',function(value) {
+            return value.slice(4,17)
+        })
+
+        const vm = new Vue({
+            el:'#root',
+            data:{
+                time:Date.now()
+            },
+            //局部过滤器，此时别的组件无法使用这个过滤器
+            filters:{
+                //vue自动调用过滤器，并把第一个当作参数传递
+                //多参数，第一个默认是管道符前一个的值 （es6新特性，参数默认值）
+                datetime(value, str='YYYY年MM月DD日 HH时mm分ss秒'){
+                    return dayjs(value).format(str);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

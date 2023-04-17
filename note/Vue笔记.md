@@ -1085,11 +1085,364 @@ vue._data.student.hobby[0]='学习'
 
 <img src='img\Vue笔记\image-20230407164526319.png'>
 
+## 1.15 v-model收集表单数据
+
+***收集表单数据：***
+
++ 若：`<input type="text"/>`，则v-model收集的是value值，用户输入的就是value值。
++ 若：`<input type="radio"/>`，则v-model收集的是value值，且要给标签配置value值。
++ 若：`<input type="checkbox"/>`
+  + 1.没有配置input的value属性，那么收集的就是checked（勾选 or 未勾选，是布尔值）
+  + 2.配置input的value属性:
+    + (1)v-model的初始值是非数组，那么收集的就是checked（勾选 or 未勾选，是布尔值）
+    + (2)v-model的初始值是数组，那么收集的的就是value组成的数组
+
+```html
+<body>
+    <div id="root">
+        <form>
+            <!-- 实现点击文字，实现聚焦input -->
+            <label for="user">账号：</label>
+            <input type="text" id="user" v-model="user"><br>
+            密码：<input type="password" v-model="passwd"><br>
+            年龄；<input type="number" v-model.number="age"><br>
+            <br>
+            性别：男<input type="radio" name="sex" value='male' v-model="sex"> 女 <input type="radio" name="sex" value="female" v-model="sex">
+            <br>
+            爱好：
+                <!-- 如果不配置value属性，v-model默认读取checked属性值 -->
+                抽烟<input type="checkbox" name="hobby" value="smoke" v-model="hobby"> 
+                喝酒<input type="checkbox" name="hobby" value="drink" v-model="hobby">
+                烫头<input type="checkbox" name="hobby" value="hair" v-model="hobby">
+
+            <br>
+            tag：<select name="tag" v-model="tag">
+                    <option value="">请选择</option>
+                    <option value="a">a</option>
+                    <option value="ab">ab</option>
+                    <option value="abc">abc</option>
+                    <option value="abcd">abcd</option>
+                </select>
+            <br>
+            其他信息：<textarea v-model.lazy="other"></textarea>
+            <br>
+            <!-- 如果不配置value属性，v-model默认读取checked属性值 -->
+            <input type="checkbox" name="agree" v-model="agree"> 阅读并接受<a href="#">《用户协议》</a>
+            <br>
+            <button type="button" @click="print">提交</button>
+        </form>
+    </div>
+
+    <script>
+        const vm = new Vue({
+            el:'#root',
+            data:{
+                user:'',
+                passwd:'',
+                age: '',
+                sex:'',
+                hobby:[],
+                tag:'',
+                other:'',
+                agree:''
+            },
+            methods:{
+                print(){
+                    // 不推荐直接使用_data，建议封装成一个对象
+                    console.log(JSON.stringify(this._data));
+                }
+            }
+        });
+    </script>
+</body>
+```
 
 
 
+## 1.16 v-model绑定事件(修饰符)
+
++ `number`，规定输入的类型必须是数字
+
+  ```html
+  <!-- 不加修饰符.number则vue接受到数据类型是string，加了之后是number-->
+  年龄；<input type="number" v-model.number="age"><br>年龄；<input type="text" v-model="age"><br>            
+  ```
+
++ `lazy`，不会实时渲染数据，等到用户输入结束（失去焦点）才会渲染。提高性能
+
+  ```html
+  其他信息：<textarea v-model.lazy="other"></textarea>
+  ```
+
++ `trim`，去掉字符串前后空格
+
+## 1.15 过滤器
+
+功能: 对要显示的数据进行特定格式化后再显示
+注意: 并没有改变原本的数据, 是产生新的对应的数据
+
+> https://bootcdn.cn第三方库
+>
+> + moment.js - 处理时间
+> + day.js - 比moment.js轻量化
+
+***用法：***
+
+==*只能用于：*==
+
++ 插值语法，`{{}}`
++ 数据绑定，`v-bind:xxx=''[:xxx='']`
+
+```html
+<!-- 过滤器本质上是一个函数，通过将‘属性值’拿到，并把其当作参数，传递到过滤器1中-->
+{{属性值 | 过滤器名字1 | 过滤器名字2 | 过滤器名字3 | ...}} <!-- | 是管道符-->
+```
+
+***用法：***
+
+```html
+<body>
+    <div id="root">
+        <h2>显示格式化后的时间</h2>
+        时间戳：{{time}} <br>
+        <!-- 多个过滤器 | 连续拼接，顺序执行， 前一个作为后一个参数，被vue自动调用
+            如果响应传递别的参数，直接传递即可，但是底层默认第一个参数是|管道符前一个的值
+            -->
+        时间：{{time|datetime('YYYY-MM-DD HH:mm:sss ')|mySlice}} <br>
+    </div>
+    <script>
+        //全局过滤器，任意组件都可以使用
+        //过滤器名 参数
+        Vue.filter('mySlice',function(value) {
+            return value.slice(4,17)
+        })
+
+        const vm = new Vue({
+            el:'#root',
+            data:{
+                time:Date.now()
+            },
+            //局部过滤器，此时别的组件无法使用这个过滤器
+            filters:{
+                //vue自动调用过滤器，并把第一个当作参数传递
+                //多参数，第一个默认是管道符前一个的值 （es6新特性，参数默认值）
+                datetime(value, str='YYYY年MM月DD日 HH时mm分ss秒'){
+                    return dayjs(value).format(str);
+                }
+            }
+        });
+    </script>
+</body>
+```
 
 
+
+## 2.16  ==*Vue内置指令*==
+
++ `v-text='xxx'`将xxx都当作该标签的文本内容，即便里面有html标签
+
+  ```html
+  <body>
+      <div id="root">
+          <!-- 最终页面会把 <h3> hello </h3> 全部显示-->
+          <div v-text="text"></div>
+      </div>
+      <script>
+          const vm = new Vue({
+              el:"#root",
+              data:{
+                  text:'<h3> hello </h3>'
+              }
+          })
+      </script>
+  </body>
+  ```
+
++ `v-html='xxx'`，会把xxx当成html进行解析。会引起跨站攻击
+
+  ```html
+  <body>
+      <div id="root">
+          <!-- 最终页面会把 hello 以3级标题显示-->
+          <div v-text="text"></div>
+      </div>
+      <script>
+          const vm = new Vue({
+              el:"#root",
+              data:{
+                  text:'<h3> hello </h3>'
+              }
+          })
+      </script>
+  </body>
+  ```
+
++ `v-cloak` 防止闪现, 与 css 配合(就是script阻塞，避免页面显示不正常)
+
+  ```html
+  <body>
+      <div id="root" v-cloak>
+          <!--v-once第一次渲染后，就视为静态内容，不再渲染 -->
+          <h2 v-once>静态渲染：{{n}}</h2>
+          <h2>动态渲染：{{n}}</h2>
+          <button @click='n++'>点我n+1</button>
+      </div>
+  
+      <script>
+          const vm = new Vue({
+              el:"#root",
+              data:{n:1}
+          })
+      </script>
+  </body>
+  </html>
+  ```
+
++ `v-once`所在的节点在初次动态渲染后，就视为静态内容（不会随着数据变化而变化了）
+
+  ```html
+  <body>
+      <!-- 目的：就是v-cloak配合css选择器，在js堵塞时阻止不正确的显示
+          原理：css给属性v-cloak添加不展示的属性，当vue创建出来就会立马接管root容器，从而删除所有的v-cloak属性，将数据进行展示
+          -->
+      <div id="root" v-cloak>
+          {{hello}}
+      </div>
+  
+      <!-- js阻塞，导致vue加载延迟，页面显示不好看 -->
+      <script src="https://djiaj.jdiaj.js"></script>
+      <script>
+          const vm = new Vue({
+              el:"#root",
+              data:{
+                  hello:'你好'
+              }
+          })
+      </script>
+  </body>
+  ```
+
++ `v-pre` 跳过其所在节点/标签的渲染过程
+
+  ```html
+  <body>
+      <div id="root" v-cloak>
+          <!-- v-pre可以利用它跳过没有 指令语法，插值语法的节点，会加快编译 -->
+          <h2 v-pre>我是完全静态内容</h2>
+          <!-- 完全不解析 了-->
+          <h2 v-pre>动态渲染：{{n}}</h2>
+      </div>
+      <script>
+          const vm = new Vue({
+              el:"#root",
+              data:{n:1}
+          })
+      </script>
+  </body>
+  ```
+
+## 2.17 ==*Vue外置指令*==
+
+***注意事项**
+
++ 长指令用-连接，如：`v-bind-number`，那么directives中最好用对象形式（当然js函数简写也可以，但必须用引号包起来）
+
++ 所以指令相关的回调函数中（包括自定义指令函数），this为window
+
++ 下面定义在new Vue中的big和fbind都是局部指令，不能被其他容器或组件使用
+
+  ```javascript
+  //全局自定义指令 和过滤器完全一样
+  Vue.directive('big',(element,bingding)=>{})
+      Vue.directive('fbind',{
+      bind(element,bingding){},
+      inserted(element,bingding){},
+      update(element,bingding){}
+  })
+  ```
+
++ 配置对象中常用的3个回调：
+
+  + bind：指令与元素成功绑定时调用。
+  + inserted：指令所在元素被插入页面时调用。
+  + update：指令所在模板结构被重新解析时调用。
+
+***例子：***
+
+```html
+<body>
+    <div id="root">
+        <!-- 
+            需求1：定义一个v-big指令，和v-text功能类似。但会把绑定数值放大10倍
+            需求2：定义一个v-fbind指令，和v-bind功能类似，但可以让其所绑定的input元素默认获取焦点
+         -->
+
+         <h2>
+            当前的值是：
+            <span v-text="n"></span>
+         </h2>
+         <h2>
+            放大十倍后的值是：
+            <span v-big="n"></span>
+         </h2>
+         <button @click="n++">点我+1</button>
+         <hr>
+         <input type="text" v-fbind:value="n">
+    </div>
+    <script>
+        const vm = new Vue({
+            el:"#root",
+            data:{n:1},
+            directives:{
+                //两种形式：对象、函数
+                /**
+                 * <strong>
+                 *     自定义指令调用的两次时机：
+                 *       ① 指令与元素成功绑定时（一上来就执行）bind函数
+                 *       ② 指令所在的模版template(如果没有应该是整个容器root)被重新解析时会被调用 update函数
+                 * </strong>
+                 * @param1 element 使用v-big的标签内容
+                 * @param2 bingding vue中的绑定关系对象
+                 **/
+                big(element,bingding){
+                    console.log(element,'@',bingding);
+                    //列出标签所有的属性
+                    console.dir(element);
+                    element.innerText = bingding.value * 10;
+                },
+                //直接使用函数，无法实现自动聚焦，因为调用自动聚焦的时机不对
+                fbind:{
+                    //调用时机
+                    //调用时机：指令和元素成功绑定时（一上来）
+                    bind(element,bingding){
+                        //内存准备阶段，一般用于属性的设置
+                        element.value=bingding.value;
+                    },
+                    //调用时机：指令所在元素被插入页面时
+                    inserted(element,bingding){
+                        //常用于元素挂在后的逻辑，如focus，提前调用会失效
+                        element.focus();
+                    },
+                    //调用时机：指令所在模版被重新解析时
+                    update(element,bingding){
+                        //更新时 的逻辑 ，用于动态渲染
+                        console.log("*****"+bingding.value);
+                        element.value=bingding.value;
+                        element.focus();
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+</html>
+```
+
+<img src='img\Vue笔记\image-20230417150045427.png'>
+
+> 备注：
+> 1.指令定义时不加v-，但使用时要加v-；
+> 2.指令名如果是多个单词，要使用kebab-case命名方式，不要用camelCase命名。
 
 # 2、Vue 组件化编程
 

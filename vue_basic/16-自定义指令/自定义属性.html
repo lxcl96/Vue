@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src='../../lib/vue.js'></script>
+</head>
+<body>
+    <div id="root">
+        <!-- 
+            需求1：定义一个v-big指令，和v-text功能类似。但会把绑定数值放大10倍
+            需求2：定义一个v-fbind指令，和v-bind功能类似，但可以让其所绑定的input元素默认获取焦点
+         -->
+
+         <h2>
+            当前的值是：
+            <span v-text="n"></span>
+         </h2>
+         <h2>
+            放大十倍后的值是：
+            <span v-big="n"></span>
+         </h2>
+         <button @click="n++">点我+1</button>
+         <hr>
+         <input type="text" v-fbind:value="n">
+    </div>
+    <script>
+        //全局自定义指令
+        Vue.directive('big',(element,bingding)=>{})
+        Vue.directive('fbind',{
+            bind(element,bingding){},
+            inserted(element,bingding){},
+            update(element,bingding){}
+        })
+
+        const vm = new Vue({
+            el:"#root",
+            data:{n:1},
+            directives:{
+                //两种形式：对象、函数
+                /**
+                 * <strong>
+                 *     自定义指令调用的两次时机：
+                 *       ① 指令与元素成功绑定时（一上来就执行）bind函数
+                 *       ② 指令所在的模版template(如果没有应该是整个容器root)被重新解析时会被调用 update函数
+                 * </strong>
+                 * @param1 element 使用v-big的标签内容
+                 * @param2 bingding vue中的绑定关系对象
+                 **/
+                big(element,bingding){
+                    console.log(element,'@',bingding);
+                    //列出标签所有的属性
+                    console.dir(element);
+                    element.innerText = bingding.value * 10;
+                },
+                //直接使用函数，无法实现自动聚焦，因为调用自动聚焦的时机不对
+                fbind:{
+                    //调用时机
+                    //调用时机：指令和元素成功绑定时（一上来）
+                    bind(element,bingding){
+                        //内存准备阶段，一般用于属性的设置
+                        element.value=bingding.value;
+                    },
+                    //调用时机：指令所在元素被插入页面时
+                    inserted(element,bingding){
+                        //常用于元素挂在后的逻辑，如focus，提前调用会失效
+                        element.focus();
+                    },
+                    //调用时机：指令所在模版被重新解析时
+                    update(element,bingding){
+                        //更新时 的逻辑 ，用于动态渲染
+                        console.log("*****"+bingding.value);
+                        element.value=bingding.value;
+                        element.focus();
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+</html>
