@@ -42,7 +42,21 @@
             }
         })
         //创建 hometown组件
-        const hometown = Vue.extend({
+        // const hometown = Vue.extend({
+        //     template:`
+        //         <div>
+        //             <h2>城市：{{city}} </h2> 
+        //             <h2>国家：{{nation}} </h2>
+        //         </div>
+        //     `,
+        //     data(){
+        //         return {
+        //             city: '上海',
+        //             nation: '上海'
+        //         }
+        //     }
+        // })
+        const hometown = {
             template:`
                 <div>
                     <h2>城市：{{city}} </h2> 
@@ -55,7 +69,7 @@
                     nation: '上海'
                 }
             }
-        })
+        }
 
         //全局注册组件
         const hello = Vue.extend({

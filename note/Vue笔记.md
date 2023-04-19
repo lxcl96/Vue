@@ -1628,6 +1628,8 @@ const vm = new Vue({
 
 ## 2.2 非单文件组件
 
+### 2.2.1 非单文件组件使用
+
 一个文件里面包含很多组件
 
 ***Vue中使用组件步骤：***
@@ -1718,11 +1720,284 @@ const vm = new Vue({
 </body>
 ```
 
+### 2.2.2 组件使用注意事项
+
+#### 2.2.2.1 组件名
+
+**单个单词：**
+
++ `school`
++ 推荐`School`
+
+**多个单词：**
+
++ `my-school`
++ 推荐`MySchool` 【但是必须在脚手架搭建的项目才能用】
+
+**注意：**
+
++ 组件名尽量避免和HTML中的元素名称（大写的也不行）。如`h2`，`H2`
+
++ 使用`name`属性可以指定vue开发者工具中该组件的名字，**实际用还是注册的那个**
+
+  ```javascript
+  const hello = Vue.extend({
+      name:'vueTool-hello',
+      template: `
+                  <div>
+                      <h2>你好</h2>
+                  </div>
+              `
+  })
+  
+  const vm = new Vue({
+      el:"#root",
+      //注册组件（局部注册）
+      components:{
+          //key为组件名，value为创建的组件id
+          hello //实际页面用还是这个名字
+      }
+  })
+  ```
+
+#### 2.2.2.2 组件标签使用
+
++ 双标签`<hello></hello>`
++ 单标签`<hello/>` **只能用于vue脚手架环境下，不然会出现错误**
+
+#### 2.2.2.4 组件声明的简写形式
+
+原理底层vue在对组件进行注册时，会先判断一下组建的类型，如果只是object对象，则自动调用`Vue.extend()`
+
+```javascript
+const hello = Vue.extend({})
+//简写形式 直接一个对象
+const hello = {}
+```
+
+### 2.2.3 组件嵌套
+
+组件A内部使用了组件B，组件B内部使用了组件C，..，这种层级关系就叫做组件的嵌套。
+
+<img src='img/Vue笔记/image-20230419133108759.png'>
+
+```html
+<body>  
+    <!-- 空的，里面内容由vm中的template决定-->
+    <div id="root"> </div>
+    <script>
+        //子组件  必须先与父组件
+        const city = Vue.extend({
+            name: 'city',
+            template:`
+            <div>
+                <h2>
+                    {{captionName}}
+                </h2>
+            </div>
+            `,
+            data(){ return { captionName:'北京' } }
+        });
+        //父组件
+        const nation = Vue.extend({
+            name: 'nation',
+            //子组件在父组件中的使用位置
+            template:`
+            <div>
+                <h2>
+                    {{nationName}}
+                </h2>
+                <city></city> 
+            </div>
+            `,
+            data(){ return { nationName:'中国'}},
+            //注册子组件，局部
+            components:{ city }
+        });
+
+        const vm = new Vue({
+            template:`<nation></nation>`,
+            el:"#root",
+            //组件注册（局部）
+            components:{
+                nation
+            }
+        })
+    </script>
+</body>
+```
+
+### 2.2.4 VueComponent
+
++ `Vue.extend(options)`我们定义组件的本质，是一个名为`VueComponent`的构造函数，且不是程序员定义的，是Vue.extend生成的
+
+  <img src='img/Vue笔记/image-20230419135923305.png'>
+
++ 我们使用组件时`<hello></hello>`，**Vue解析时会帮我们创建hello组件的实例对象**，即**Vue帮我们执行的`new VueComponent(options)`**
+
+  > 每次创建一个组件，都调用new关键字，则从此处可以看出每个组件实例对象`VueComponent`不一样。
+
++ **特别注意：每次调用Vue.extend，返回的都是一个全新的VueComponent！！！！**
+
++ **关于this指向：**
+
+  + `Vue.extend(options)`,组件配置options中 **`data函数`,`methods对象`,`watch中函数`,`computed中的函数`他们的this指向都是【VueComponent的实例对象】**
+  + `new Vue(options)`，vue实例配置options中，**`data函数`,`methods对象`,`watch中函数`,`computed中的函数`他们的this指向都是【vue的实例对象】**
+  + **vue实例对象和VueComponent的实例对象结构是完全一样的，VueComponent可以理解为小vm**
+
++ VueComponent的实例对象，以后简称vc（也可称之为：组件实例对象）。Vue的实例对象，以后简称vm。
+
+<img src='img/Vue笔记/image-20230419141229128.png'>
+
+### 2.2.5 原型对象
+
+原型对象链的自动调用
+
+```javascript
+function Demo(){
+    this.a=1;
+    this.b=2;
+}
+const d1 = new Demo();
+//显式原型属性和隐式原型属性指向同一个 【原型对象】
+console.log(Demo.prototype);//这个是显式原型属性
+console.log(d1.__proto__);//这个是隐式原型属性
+
+console.log(Demo.prototype === d1.__proto__);
+//程序员通过显式原型属性操作原型对象，追加一个x，值为99
+Demo.prototype.x = 99;
+//因为是同一个原型对象，d1自身没有，会自动取__proto__上找x
+console.log(d1.x);//等于d1.__proto__.x
+```
 
 
-## 2.3 单文件组件
 
-一个文件里面只包含1个组件，且后缀名是vue
+### 2.3.6 ==***Vue和VueComponent的关系***==
+
+***实例的隐式原型属性，永远指向自己缔造者的原型对象***
+
+<img src='img/Vue笔记/image-20230419145416650.png'>
+
+> ***注意，我们写的组件名hello，school等都是原型对象（==可以理解为类，不是实例==），dom标签中的==`<hello></hello>`==才是实例对象***
+
+```javascript
+const hello = Vue.extend(options);
+hello.prototype.__proto__ === Vue.prototype === vm.__proto__
+```
+
+## 2.3 ***==单文件组件==***
+
+一个文件里面只包含1个组件，且后缀名是vue。里面允许写以下三个标签：
+
++ `<template></template>` 里面用于写html内容
++ `<script></script>` 里面用于写js脚本
++ `<style></style>` 里面用于写css样式
+
+> 注：vscode需要安装插件，用于提示代码
+
+### 2.3.1 创建组件`School.vue`
+
+```vue
+<template>
+    <div class="demo">
+        <h2>学校名称：{{name}} </h2>
+        <h2>学校地址：{{address}} </h2>
+    </div>
+</template>
+
+<script>
+    //分别暴露  Vue.extend可以省略
+    export const school = Vue.extend({
+        name:'School',
+        data(){
+            return {
+                name: '蓝翔',
+                address: '中国 山东'
+            }
+        }
+    });
+
+    /**
+     * 默认暴露导入方式：
+     *  import xxx from xxxx;
+     * 统一或分别暴露导入方式：
+     *  import {xxx} from xxxx;
+     */
+    //统一暴露
+    //export {school};
+    //默认暴露
+    //export default school; 
+</script>
+<style>
+    .demo{
+        background-color: skyblue;
+    }
+</style>
+```
+
+### 2.3.2 创建`App.vue`
+
+```vue
+<template>
+  <div>
+    <School/>
+  </div>
+</template>
+
+<script>
+    //导入没有后缀（写不写都可以）
+    import { School } from './School';
+    //默认暴露，且省略Vue.extend()
+    export default {
+        name: 'App',
+        components: {
+            School
+        }
+    }
+</script>
+```
+
+### 2.3.3 创建入口文件`main.js`
+
+```javascript
+//浏览器不直接支持es6语法
+import App from './App.vue'
+
+new Vue({
+    el: "#root",
+    template: `<App/>`,
+    components: {
+        App
+    }
+})
+```
+
+### 2.3.4 创建首页文件`index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue单文件组件</title>
+</head>
+<body>
+    <div id="root">
+        
+    </div>
+    <script src="../../lib/vue.js"></script>
+    <script src="./main.js"></script>
+</body>
+</html>
+```
+
+### 2.3.5 运行
+
+运行失败，提示`Uncaught SyntaxError: Cannot use import statement outside a module (at main.js:2:1)`
+
+即：单组件需要使用vue脚手架`vue-cli`，直接运行会报错。因为浏览器不能直接运行es6语法`import`
 
 # 3、使用Vue脚手架
 

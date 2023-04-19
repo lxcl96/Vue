@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src='../../lib/vue.js'></script>
+</head>
+<body>
+    <div id="root">
+        
+    </div>
+    <script>
+
+        /*
+        function Demo(){
+            this.a=1;
+            this.b=2;
+        }
+        const d1 = new Demo();
+        //显式原型属性和隐式原型属性指向同一个 【原型对象】
+        console.log(Demo.prototype);//这个是显式原型属性
+        console.log(d1.__proto__);//这个是隐式原型属性
+
+        console.log(Demo.prototype === d1.__proto__);
+        //程序员通过显式原型属性操作原型对象，追加一个x，值为99
+        Demo.prototype.x = 99;
+        //因为是同一个原型对象，d1自身没有，会自动取__proto__上找x
+        console.log(d1.x);//等于d1.__proto__.x
+*/
+        const nation = Vue.extend({
+            name: 'nation',
+            template:`
+            <div>
+                <h2>
+                    {{nationName}}
+                </h2>
+            </div>
+            `,
+            data(){
+                return {
+                    nationName:'中国'
+                }
+            }
+        });
+        console.log(nation.prototype.__proto__ === Vue.prototype);
+        const vm = new Vue({
+            el:"#root",
+            data:{}
+        })
+    </script>
+</body>
+</html>
