@@ -1444,9 +1444,285 @@ vue._data.student.hobby[0]='学习'
 > 1.指令定义时不加v-，但使用时要加v-；
 > 2.指令名如果是多个单词，要使用kebab-case命名方式，不要用camelCase命名。
 
+## 1.18 ==*Vue实例生命周期*==
+
+### 1.18.1 引出生命周期
+
++ **生命周期**又名：**生命周期回调函数**、**生命周期函数**，**生命周期钩子**。
+
++ 生命周期**本质**就是：*Vue在关键时刻帮我们调用的一些特殊名称的函数**
+
++ **生命周期函数的名字不可更改**，但是函数的具体内容是程序员根据需求编写的
+
++ 生命周期函数中的**this**指向是**vm**或**组件实例对象**
+
+  > ***只会在初始时将真实dom放入页面后，调用。（==即只会在刚开始调用一次==）***
+
+代码：
+
+```javascript
+const vm = new Vue({
+    el:"#root",
+    data:{
+        opacity:1
+    },
+    //Vue完成模版的解析并把初始的真实dom元素放入页面后（挂载完毕）调用mounted
+    //核心点：只在第一次执行（挂载），以后都是修改值都是更新（不是挂载），不会再次调用mounted
+    mounted(){//与data平级，是个函数
+        console.log(this);
+        setInterval(() => {
+            this.opacity -= 0.01;
+            if(this.opacity <= 0) this.opacity=1;
+        }, 50);
+    }
+})
+```
+
+### 1.18.2 分析生命周期
+
+一共四大流程，8个钩子函数
+
++ 创建流程
+
+  ```javascript
+  //不是vm，而是指数据代理和数据检测的创建
+  beforeCreate(){}
+  created(){}
+  ```
+
++ 挂载流程
+
+  ```javascript
+  beforeMount(){}
+  mounted(){}
+  ```
+
++ 更新流程
+
+  ```javascript
+  beforeUpdate(){}
+  updated(){}
+  ```
+
++ 销毁流程
+
+  ```javascript
+  beforeDestroy(){}
+  destroyed(){}
+  ```
+
+  <img src='img/Vue笔记/生命周期.png'>
+
+***代码实例：***
+
+```html
+<body>
+    <div id="root">
+        <h2>当前n值为：{{n}}</h2>
+        <button @click="add">点我n+1</button>
+    </div>
+    <script>
+        const vm = new Vue({
+            el:"#root",
+            //可以用这个存放root内部的子孙标签，但是前提必须是在只能有一个根节点
+            template:``,
+            data:{n:1},
+            methods:{
+                add(){
+                    this.n++;
+                }
+            },
+            //数据侦测和数据代理创建前
+            beforeCreate(){
+                console.log("1. beforeCreate");
+                console.log(this);//此时还无法访问data中数据和methdos方法
+                // debugger;
+            },
+            //数据侦测和数据代理创建后
+            created(){
+                console.log("2. created");
+                console.log(this);//此时可以访问data中数据和methdos方法
+            },
+            beforeMount(){
+                console.log("3. brforeMount");
+                console.log(this);//此时对页面的dom进行操作，最终都会被vue覆盖掉
+                // debugger
+            },
+            mounted(){
+                console.log("4. mounted");
+                console.log(this);//此时对页面的dom进行操作有效，但是不推荐自己操作dom
+            },
+            beforeUpdate(){
+                console.log("5. brforeUpdate");
+                console.log(this);//
+            },
+            updated(){
+                console.log("6. updated");
+                console.log(this);//
+            },
+            beforeDestroy(){
+                console.log("7. beforeDestroy");
+                console.log(this);//
+            },
+            destroyed(){
+                console.log("8. destroy");
+                console.log(this);//
+            }
+        })
+    </script>
+</body>
+</html>
+```
+
+### 1.18.3 总结
+
+**常用的生命周期钩子：**
+
++ `mounted`，此时发送ajax请求、启动定时器、绑定自定义事件、订阅消息【初始化操作】
++ `beforeDestroy`，此时清除定时器、解绑自定义事件、取消订阅消息等【收尾工作】
+
+**关于销毁Vue实例：**
+
++ 销毁后借助Vue开发者工具看不到任何消息
++ 销毁后**自定义事件会失效，但是dom原生事件依然有效**
++ 一般不会在`beforeDestroy`操作数据，**因为即便操作数据，也不会触发更新（update）流程**
+
 # 2、Vue 组件化编程
 
+## 2.0 组件的引入
 
+传统方式编写应用存在的问题：
+
++ 依赖关系混乱，不好维护
++ 代码复用率不高
+
+<img src='img/Vue笔记/image-20230418154312715.png'>
+
+<img src='img/Vue笔记/image-20230418154620220.png'>
+
+***组件：实现局部（特定）功能的==代码==和==资源==的==集合==***
+
+<img src='img/Vue笔记/image-20230418155234340.png'>
+
+## 2.1 模块化与组件
+
+### 2.1.1 模块
+
+将一个js，按照功能模块进行划分成多个js文件，每个js文件就叫一个模块。
+
+作用: 复用 js, 简化 js 的编写, 提高 js 运行效率
+
+### 2.1.2 组件
+
+实现局部（特定）功能的代码和资源的集合
+
+作用: 复用编码, 简化项目编码, 提高运行效率
+
+### 2.1.3 模块化
+
+当应用中的 js 都以模块来编写的, 那这个应用就是一个模块化的应用。
+
+### 2.1.4 组件化
+
+当应用中的功能都是多组件的方式来编写的, 那这个应用就是一个组件化的应用。
+
+## 2.2 非单文件组件
+
+一个文件里面包含很多组件
+
+***Vue中使用组件步骤：***
+
++ *通过Vue.extend创建组件*
+
+  > ==*data必须是一个函数*==
+
++ *vue中配置components注册组件 【分为全局/局部注册】*
+
++ *通过组件标签，使用组件【如果你的组件名为person 则`<perosn></person>`使用】*
+
+**代码实例：**
+
+```html
+<body>
+    <div id="root">
+        <!--组件标签，只能使用全局组件和注册到root上的组件 -->
+        <person></person>
+        <hr>
+        <hometown></hometown>
+        <hr>
+        <hello></hello>
+    </div>
+    <script>
+        /**
+         * vue中使用组件：
+         *  1.通过Vue.extend创建组件
+         *  2.vue中配置components注册组件
+         *  3.通过组件标签，使用组件【如果你的组件名为person 则<perosn></person>使用】
+         * 
+         **/ 
+        //创建 person组件  【组件是包含代码和资源的】
+        const person = Vue.extend({
+            //el:'#root'//组件可被任意文件引用，所以不需要有挂载点
+            template:`
+                <div>
+                    <h2>姓名：{{name}} </h2> 
+                    <h2>年龄：{{age}} </h2>
+                </div>
+            `,
+            //data必须为函数，且返回一个data对象。
+            //这是因为如果和vue一样是一个对象，那么被其他文件引用时其实共享的是同一个地址，修改一下值，则都会发生变化
+            data(){
+                return {
+                    name: '张三',
+                    age: 18
+                }
+            }
+        })
+        //创建 hometown组件
+        const hometown = Vue.extend({
+            template:`
+                <div>
+                    <h2>城市：{{city}} </h2> 
+                    <h2>国家：{{nation}} </h2>
+                </div>
+            `,
+            data(){
+                return {
+                    city: '上海',
+                    nation: '上海'
+                }
+            }
+        })
+
+        //全局注册组件
+        const hello = Vue.extend({
+            template: `
+                <div>
+                    <h2>你好</h2>
+                </div>
+            `
+        })
+        //参数1：组件名  参数2：hello组件
+        Vue.component('hello',hello);
+
+        const vm = new Vue({
+            el:"#root",
+            //注册组件（局部注册）
+            components:{
+                //key为组件名，value为创建的组件id
+                person,
+                hometown,
+            }
+        })
+    </script>
+</body>
+```
+
+
+
+## 2.3 单文件组件
+
+一个文件里面只包含1个组件，且后缀名是vue
 
 # 3、使用Vue脚手架
 

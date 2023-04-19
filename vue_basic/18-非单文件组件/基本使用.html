@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src='../../lib/vue.js'></script>
+</head>
+<body>
+    <div id="root">
+        <person></person>
+        <hr>
+        <hometown></hometown>
+        <hr>
+        <hello></hello>
+    </div>
+    <script>
+        /**
+         * vue中使用组件：
+         *  1.通过Vue.extend创建组件
+         *  2.vue中配置components注册组件
+         *  3.通过组件标签，使用组件【如果你的组件名为person 则<perosn></person>使用】
+         * 
+         **/ 
+        //创建 person组件  【组件是包含代码和资源的】
+        const person = Vue.extend({
+            //el:'#root'//组件可被任意文件引用，所以不需要有挂载点
+            template:`
+                <div>
+                    <h2>姓名：{{name}} </h2> 
+                    <h2>年龄：{{age}} </h2>
+                </div>
+            `,
+            //data必须为函数，且返回一个data对象。
+            //这是因为如果和vue一样是一个对象，那么被其他文件引用时其实共享的是同一个地址，修改一下值，则都会发生变化
+            data(){
+                return {
+                    name: '张三',
+                    age: 18
+                }
+            }
+        })
+        //创建 hometown组件
+        const hometown = Vue.extend({
+            template:`
+                <div>
+                    <h2>城市：{{city}} </h2> 
+                    <h2>国家：{{nation}} </h2>
+                </div>
+            `,
+            data(){
+                return {
+                    city: '上海',
+                    nation: '上海'
+                }
+            }
+        })
+
+        //全局注册组件
+        const hello = Vue.extend({
+            template: `
+                <div>
+                    <h2>你好</h2>
+                </div>
+            `
+        })
+        //参数1：组件名  参数2：hello组件
+        Vue.component('hello',hello);
+
+        const vm = new Vue({
+            el:"#root",
+            //注册组件（局部注册）
+            components:{
+                //key为组件名，value为创建的组件id
+                person,
+                hometown,
+            }
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src='../../lib/vue.js'></script>
+</head>
+<body>
+    <div id="root">
+        <h2>当前n值为：{{n}}</h2>
+        <button @click="add">点我n+1</button>
+    </div>
+    <script>
+        const vm = new Vue({
+            el:"#root",
+            //可以用这个存放root内部的子孙标签，但是前提必须是在只能有一个根节点
+            template:``,
+            data:{n:1},
+            methods:{
+                add(){
+                    this.n++;
+                }
+            },
+            //数据侦测和数据代理创建前
+            beforeCreate(){
+                console.log("1. beforeCreate");
+                console.log(this);//此时还无法访问data中数据和methdos方法
+                // debugger;
+            },
+            //数据侦测和数据代理创建后
+            created(){
+                console.log("2. created");
+                console.log(this);//此时可以访问data中数据和methdos方法
+            },
+            beforeMount(){
+                console.log("3. brforeMount");
+                console.log(this);//此时对页面的dom进行操作，最终都会被vue覆盖掉
+                // debugger
+            },
+            mounted(){
+                console.log("4. mounted");
+                console.log(this);//此时对页面的dom进行操作有效，但是不推荐自己操作dom
+            },
+            beforeUpdate(){
+                console.log("5. brforeUpdate");
+                console.log(this);//
+            },
+            updated(){
+                console.log("6. updated");
+                console.log(this);//
+            },
+            beforeDestroy(){
+                console.log("7. beforeDestroy");
+                console.log(this);//
+            },
+            destroyed(){
+                console.log("8. destroy");
+                console.log(this);//
+            }
+        })
+    </script>
+</body>
+</html>
