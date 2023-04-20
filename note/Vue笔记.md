@@ -2001,6 +2001,377 @@ new Vue({
 
 # 3、使用Vue脚手架
 
+## 3.1 初始化脚手架
+
+### 3.1.1 说明
+
++ Vue脚手架是Vue官方提供的标准化开发工具（开发平台）
++ 最新的版本是4.x
++ 文档 https://cli.vuejs.org/zh/
+
+### 3.1.2 使用步骤
+
++ 全局安装vue-cli `npm install -g @vue/cli`
++ **切换到要创建vue项目的目录，执行`vue create xxx`**
++ 启动项目 `npm run serve`(不是server)
+
+> ***备注：***
+>
+> + 如果网速慢，设置淘宝镜像`npm config set registry https://registry.npm.taobao.org`
+> + vue脚手架隐藏了所有webpac相关的配置，若想查看具体的webpack配置，请执行:`vue inspect > output.js`
+
+### 3.1.3 模版项目的结构
+
+<img src='/img/Vue笔记/image-20230420100710360.png'>
+
+### 3.1.4 index.html文件说明
+
+```html
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <!-- 针对ie浏览器的设置，告诉ie浏览器以最高级别（兼容）进行渲染 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 开启移动端的理想视口 -->
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!-- 网站favicon图标  <%= BASE_URL %>代表public目录（以/结尾）-->
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <!-- 配置网页标头 webpack获取package.json中的项目名name -->
+    <title><%= htmlWebpackPlugin.options.title %></title>
+  </head>
+  <body>
+    <!-- 当浏览器不支持js时，该标签内容会显示 -->
+    <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <!-- 容器 -->
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+  </body>
+</html>
+
+```
+
+### 3.1.5 main.js解析之render()
+
+```javascript
+/**
+ * mauin.js为vue项目的入口文件
+ */
+//导入Vue
+import Vue from 'vue'
+//导入App组件，是所有组件的父组件
+import App from './App.vue'
+//关闭vue生产提示
+Vue.config.productionTip = false
+
+//创建Vue实例对象
+new Vue({
+  //将App组件放入root容器中
+  render: h => h(App),
+}).$mount('#app')
+```
+
+#### 3.1.5.1 使用模版`template`配置项
+
++ 使用`template`配置项
+
+  ```javascript
+  import Vue from 'vue'
+  new Vue({
+    template:'<h1>你好</h1>'
+    //render: h => h(App),
+  }).$mount('#app')
+  ```
+
++ 运行，发现报错
+
+  <img src='img/Vue笔记/image-20230420102247275.png'>
+
++ 找到导入的vue,在`node_modules/vue`文件夹中
+
++ 查看vue的配置文件`package.json`的`main`配置项
+
+  <img src='img/Vue笔记/image-20230420102537698.png'>
+
++ **解决方法1：在main.js中将vue更改为完整的vue.js**
+
+  ```javascript
+  //原理是 import Vue from 'vue'
+  import Vue from 'vue/dist/vue'
+  
+  new Vue({
+    template:'<h1>你好</h1>'
+    //render: h => h(App),
+  }).$mount('#app')
+  
+  ```
+
+  成功解决
+
++ **解决方法2：使用render函数**
+
+  ```javascript
+  new Vue({
+    render(createElement){
+      console.log(createElement);
+      /***
+       * createElement是一个函数，用于创建页面元素
+       * 参数可以是组件，html元素
+       */
+      //render必须有返回值,且是创建的元素
+      return createElement('h1','你好');
+    }
+    //render: h => h(App), //简写形式
+  }).$mount('#app')
+  ```
+
+#### 3.1.5.2 不同版本的vue
+
++ `vue.common.xxx.js`是CommonJS语法
++ `vue.esm.xxx.js`是EScript语法，m代表modules
++ `vue.js`是完整版的vue， （包含：核心功能+模版解析器）
++ `vue.runtime.esm/commom.js`是运行时的vue，（只包含：核心功能）
+
+> 因为`vue.runtime.commom.js`没有模版解析器，所以不能用template配置项，需要使用render函数接受到`createElement`去创建html内容
+
+### 3.1.6 修改vue-cli的全局配置
+
+```shell
+# 用于查看vue的webpack的配置
+vue inspect > vue.config.webpack.json
+```
+
+比如想要修改入口文件名为`index.js`
+
+配置参考指令：https://cli.vuejs.org/zh/config/
+
+**示例：**
+
+```javascript
+//vue.config.js文件 和src目录平级
+const { defineConfig } = require('@vue/cli-service')
+module.exports = defineConfig({
+  transpileDependencies: true,
+  pages: {
+    index: {
+      //重置入门文件
+      entry: 'index.js'
+    }
+  },
+  //关掉js语法检查
+  lintOnSave:false
+})
+```
+
+## 3.2 ref与props属性
+
+### 3.2.1 ==*ref标签属性*==
+
+类似于与dom标签中原生的`id`属性，都是用来定位元素的。
+
++ ref被用来给元素或**子组件**注册引用信息（id的替代者）
++ ref应用在html标签上获取的是真实DOM元素，应用在**组件标签**上是组件实力对象（理解为java类的实例）
+
+```javascript
+//dom定位元素
+document.getElementById(xx)
+//this 是当前组件的VueComponent（显示原型链条）
+console.log(this.$refs.stu);
+```
+
+***注意：***
+
++ ref用在html标签上，和id属性完全一样，**获取的是标签元素**
+
+  ```html
+  <h1 v-text="msg" ref="title" id='title'></h1>
+  ```
+
++ **ref用在组件上，则ref获取到的是组件的实例对象vc（隐式原型链条），而id获取到的是整个组件html的标签元素(==主要用于组件间通信==)**
+
+  ```html
+  <School ref="stu" id='stu'/>
+  ```
+
+<img src='img/Vue笔记/image-20230420163746189.png'>
+
+### 3.2.2 ==*props属性*==
+
+用于***父组件向子组件传递属性***。子组件的数据由父组件在组件标签中，声明传递。
+
+#### 3.2.2.1 简单使用props
+
++ 子组件
+
+  ```vue
+  <template>
+    <div>
+      <h1 v-text="msg"></h1>
+        <!-- age name sex被挂载到当前组件的的实例 可以用this.name获取到-->
+      <h4>学生姓名：{{name}} </h4>
+      <h4>学生性别：{{sex}} </h4>
+      <h4>学生年龄：{{age}} </h4>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'Student',
+      data(){
+          return {
+              msg:'欢迎，'
+          }
+      }, 
+      //props的简单配置 必须加引号，因为不加引号是变量
+      props: ['age','name','sex']
+  }
+  </script>
+  ```
+
+  <img src='img/Vue笔记/image-20230420204731289.png'>
+
++ 父组件使用子组件
+
+  ```vue
+  <template>
+      <div>
+          <!-- 
+  			1.所有的props属性必须通过标签属性的方式传递到子组件
+  			2.父子组件 props属性中prop必须名称（变量名相同）
+  			3.prop必须带引号，即key="value"
+  			4.最重要的一点，这样传递的属性最后都是String类型的，如果想要传递 js表达式或数字，其他类型数据必须，使用指令v-bind 简写为 :age='18',那么子组件接受到的就是Number类型的18
+  		-->
+          <Student name="张三" sex="男" age="18" /> <hr>
+      </div>
+  </template>
+  ```
+
++ 运行，页面成功显示数据
+
+#### 3.2.2.2 进阶使用props
+
++ 子组件
+
+  ```vue
+  <template>
+    <div>
+      <h1 v-text="msg"></h1>
+      <h4>学生姓名：{{name}} </h4>
+      <h4>学生性别：{{sex}} </h4>
+      <h4>学生年龄：{{age}} </h4>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'Student',
+      data(){
+        console.log(this);
+          return {
+              msg:'欢迎，'
+          }
+      }, 
+      	//props的简单配置 props: ['age','name','sex']
+      //props的进阶配置,声明变量的同时指定类型，如果传递的类型不一致，会报错
+      props:{
+        name:String,//指定为String类型
+        sex:String,
+        age:Number//指定为NUmber类型
+      }
+  }
+  </script>
+  ```
+
++ 父组件
+
+  ```vue
+  <template>
+      <div>
+          <!-- 由于子组件指定了 age为Number类型，则必须要用到v-bind指令-->
+          <Student name="张三" sex="男" :age="18"/> <hr>
+      </div>
+  </template>
+  ```
+
++ 成功运行
+
+#### 3.2.2.3 高级使用props
+
++ 子组件
+
+  ```vue
+  <template>
+    <div>
+      <h1 v-text="msg"></h1>
+      <h4>学生姓名：{{name}} </h4>
+      <h4>学生性别：{{sex}} </h4>
+      <h4>学生年龄：{{age}} </h4>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'Student',
+      data(){
+        console.log(this);
+          return {
+              msg:'欢迎，'
+          }
+      },
+      //props的高级配置
+      props:{
+          //prop属性 
+        name:{
+          type: String, //类型 String
+          required: true,//必须
+        },
+        sex:{
+          type: String,
+          required: true,
+        },
+        age: {
+          type: Number,
+          default: 22 //不必须 默认为值
+        }
+      }
+  }
+  </script>
+  ```
+
++ 父组件
+
+  ```vue
+  <template>
+      <div>
+          <Student name="张三" sex="男" /> <hr>
+      </div>
+  </template>
+  ```
+
++ 成功运行
+
+#### 3.2.2.4 怎么传递Object对象？？
+
+## 3.3 混入
+
+## 3.4 插件
+
+## 3.5 Todo-list
+
+## 3.6 Vue中的自定义事件
+
+## 3.7 全局事件总线
+
+## 3.8 消息订阅与发布
+
+## 3.9 过度与动画
+
+
+
+
+
 
 
 # 4、Vue中的ajax
