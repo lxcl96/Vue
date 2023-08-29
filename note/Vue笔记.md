@@ -1672,7 +1672,7 @@ const vm = new Vue({
                 </div>
             `,
             //data必须为函数，且返回一个data对象。
-            //这是因为如果和vue一样是一个对象，那么被其他文件引用时其实共享的是同一个地址，修改一下值，则都会发生变化
+            //必须为函数这是因为如果和vue一样是一个对象，那么被其他文件引用时其实共享的是同一个地址，修改一下值，则都会发生变化
             data(){
                 return {
                     name: '张三',
@@ -1711,7 +1711,7 @@ const vm = new Vue({
             el:"#root",
             //注册组件（局部注册）
             components:{
-                //key为组件名，value为创建的组件id
+                //key为组件名，value为创建的组件id 省略就是id默认为组件名
                 person,
                 hometown,
             }
@@ -2172,12 +2172,12 @@ module.exports = defineConfig({
 类似于与dom标签中原生的`id`属性，都是用来定位元素的。
 
 + ref被用来给元素或**子组件**注册引用信息（id的替代者）
-+ ref应用在html标签上获取的是真实DOM元素，应用在**组件标签**上是组件实力对象（理解为java类的实例）
++ ref应用在html标签上获取的是真实DOM元素，应用在**组件标签**上是组件实例对象vc（理解为java类的实例）
 
 ```javascript
 //dom定位元素
 document.getElementById(xx)
-//this 是当前组件的VueComponent（显示原型链条）
+//this 是当前组件的VueComponent（显示原型链条） 用于在组件中代替原生dom操作扎到元素
 console.log(this.$refs.stu);
 ```
 
@@ -2186,7 +2186,7 @@ console.log(this.$refs.stu);
 + ref用在html标签上，和id属性完全一样，**获取的是标签元素**
 
   ```html
-  <h1 v-text="msg" ref="title" id='title'></h1>
+      <h1 v-text="msg" ref="title" id='title'></h1>
   ```
 
 + **ref用在组件上，则ref获取到的是组件的实例对象vc（隐式原型链条），而id获取到的是整个组件html的标签元素(==主要用于组件间通信==)**
@@ -2241,7 +2241,7 @@ console.log(this.$refs.stu);
   			1.所有的props属性必须通过标签属性的方式传递到子组件
   			2.父子组件 props属性中prop必须名称（变量名相同）
   			3.prop必须带引号，即key="value"
-  			4.最重要的一点，这样传递的属性最后都是String类型的，如果想要传递 js表达式或数字，其他类型数据必须，使用指令v-bind 简写为 :age='18',那么子组件接受到的就是Number类型的18
+  			4.最重要的一点，这样传递的属性最后都是String类型的，如果想要传递 js表达式或数字，其他类型数据必须，使用指令v-bind(里面的就是表达式了) 简写为 :age='18',那么子组件接受到的就是Number类型的18
   		-->
           <Student name="张三" sex="男" age="18" /> <hr>
       </div>
@@ -2356,9 +2356,328 @@ console.log(this.$refs.stu);
 
 #### 3.2.2.4 怎么传递Object对象？？
 
-## 3.3 混入
++ 将对象转化为json字符串，然后子组件中声明其为对象
+
+  - 父组件
+
+    ```vue
+    // props使用
+    <template>
+        <div>
+            <Student name="张三" sex="男" :object="object" :json="{'value':'i am  props object value by json string','text':'...'}" /> <hr>
+        </div>
+    </template>
+    
+    ```
+
+  - 子组件
+
+    ```vue
+    // props使用
+    <template>
+      <div>
+        <h4>object:{{object}}</h4>
+        <h4>object.value:{{object.value}}</h4>
+        <br>
+        <h4>json:{{json}}</h4>
+        <h4>json.value:{{json.value}}</h4>
+      </div>
+    </template>
+    
+    <script>
+    export default {
+        name:'Student',
+        props:{
+          object: {
+            type: Object
+          },
+          json: {
+            type: Object
+          }
+        }
+    }
+    </script>
+    ```
+
+  - 运行结果
+
+    <img src='img/Vue笔记/image-20230829144557594.png'>
+
++ 父组件通过data直接将对象传递过去，子组件中声明其为对象
+
+  - 父组件
+
+    ```vue
+    <template>
+        <div>
+            <Student name="张三" sex="男" :object="object"/> <hr>
+        </div>
+    </template>
+        
+    <script>
+        import Student from './components/Student.vue'
+        export default {
+            name: 'App',
+            data(){
+                return {
+                    object:{
+                        value: "i am  props object value",
+                        text: "..."
+                    }
+                }
+            },
+            components: {Student}
+        }
+    </script>
+    ```
+
+  - 子组件
+
+    ```vue
+    <template>
+      <div>
+        <h4>学生年龄：{{age}} </h4>
+        <br>
+        <h4>object:{{object}}</h4>
+        <h4>object.value:{{object.value}}</h4>
+      </div>
+    </template>
+    
+    <script>
+    export default {
+        name:'Student',
+        props:{
+          age: {
+            type: Number,
+            default: 22
+          },
+          object: {
+            type: Object //指定prop属性为Object
+          }
+        }
+    }
+    </script>
+    ```
+
+  - 运行结果
+
+    <img src='img/Vue笔记/image-20230829143946333.png'>
+
+
+
+## 3.3 混入(Mixin)
+
+### 3.3.1 引入
+
+​	如多个组件具有相同的methods函数（或其余配置如组件等），则可以将其相同函数抽出来放在额外的配置文件中（如mixin.js），然后引用。这个过程就叫做混入。
+
+### 3.3.2 *数据冲突*
+
++ 对于==***methods，data数据***==当前组件中没有，混合mixin文件中有的，以mixin文件为准。
++ 对于==***methods，data数据***==当前组件中有，混合mixin文件中也有的，以当前组件的配置为准（忽略mixin）。
++ 对于==***vue周期函数如：mounted***==，则是叠加。如果都有则都会执行，不会只执行一个。**对于同名周期函数：先执行mixin中的周期函数，然后才会执行自己组件中的同名周期函数**。
+
+### 3.3.3 分类
+
+#### 3.3.3.1 局部混合
+
+**局部混合**：组件引入混合mixin文件并使用
+
+**范围**：只对当前组件生效
+
++ 定义混入文件如`mixin.js`，编写公共配置
+
+  ```javascript
+  //mixin使用 分别暴露方式
+  export const mixin = {
+      //这里可以写vc中的methods，data,mounted等(vc中可以写的配置，这里都可以)
+      methods: {
+          showAlert(){
+              alert(this.name);
+          }
+      },
+      //一挂载好就执行的生命周期函数
+      mounted(){
+          console.log("已经挂载完成！");
+      }
+  }
+  ```
+
++ 组件中引入使用
+
+  ```vue
+  // mixin使用
+  <template>
+    <div>
+      <h1 v-text="msg"></h1>
+      <h4 @click='showAlert'>学生姓名：{{name}} </h4>
+    </div>
+  </template>
+  
+  <script>
+  //引入混合mixin文件
+  import {mixin} from '../mixin'
+  //mixin使用
+  export default {
+      name:'Student',
+      data(){
+          return {
+              msg: '欢迎，',
+              name: '张三'
+          }
+      },
+      mixins:[mixin]//必须是数组
+  }
+  </script>
+  ```
+
++ 测试运行
+
+  <img src='img/Vue笔记/image-20230829154045961.png'>
+
+#### 3.3.3.2 全局混合
+
+**全局混合**：入口文件`main.js`中引入并使用
+
+**范围**：对vm和所有组件实例都有效，即`vm+所有的vc`
+
++ 定义混入文件如`mixin.js`，编写公共配置（和混合使用的完全一样）
+
++ 入口文件`main.js`引入使用
+
+  ```javascript
+  import Vue from 'vue'
+  import App from './App'
+  //引入mixin文件
+  import {mixin} from './mixin'
+  
+  Vue.config.productionTip = false;
+  //挂载到全局vue上
+  Vue.mixin(mixin)
+  
+  new Vue({
+      render: h => h(App)
+  }).$mount('#app')
+  ```
+
++ 测试运行
+
+  <img src='img/Vue笔记/image-20230829154455511.png'>
+
+  <img src='img/Vue笔记/image-20230829154547885.png'>
 
 ## 3.4 插件
+
+### 3.4.1 功能
+
+用于增强Vue，插件文件可以定义如下几种功能：
+
++ **定义Vue全局过滤器（vm和所有的vc都能使用）**
++ **定义Vue全局自定义指令（vm和所有的vc都能使用）**
++ **定义Vue全局混入mixin（vm和所有的vc都能使用）**
++ **向Vue原型上添加数据和函数（vm和所有的vc都能使用）**
+
+### 3.4.2 本质
+
+插件本质上就是包含install方法的对象，**install内部第一个参数为Vue原型（不是vm，vue传递）**，第二个以及以后的参数为开发者传递的参数。
+
+### 3.4.3 使用
+
++ 定义插件文件如`plugins.js`
+
+  ```javascript
+  //插件本质上是 包含install方法的对象
+  export default { //默认暴露的简写方式
+      install(Vue,x,y,z){
+          console.log(Vue,x,y,z);
+          //1.可以定义全局的过滤器 （vm和所有的vc都能使用）
+          Vue.filter('myFilter',function(value){
+              return value + "~";//功能：加个~
+          })
+          //2.可以定义全局的自定义指令 （vm和所有的vc都能使用）
+          Vue.directive('fbind',{
+              //功能：实现v-bind功能并实现自动聚焦
+              //指令与元素成功绑定时（一上来）
+              bind(element,binding){
+                  element.value=binding.value;
+              },
+              //指令所在的元素被插入页面时（生成dom元素时）
+              inserted(element,binding){
+                  element.focus();
+              },
+              //指令所在的模版被重新解析时
+              update(element,binding){
+                  element.value=binding.value;
+              }    
+              
+          })
+          //3.定义全局的混入mixin （vm和所有的vc都能使用）
+          Vue.mixin({
+              data(){
+                  return {
+                      x: 100,
+                      y: 200
+                  }
+              }
+          })
+          //4.给Vue原型上添加一个方法（vm和所有的vc都能使用）
+          Vue.prototype.hello=() =>{alert("你好！")}
+      }   
+  }
+  ```
+
++ 入口文件`main.js`中使用`Vue.use(xxx)`
+
+  ```javascript
+  import Vue from 'vue'
+  import App from './App'
+  //引入插件
+  import plugins from './plugins'
+  
+  Vue.config.productionTip = false;
+  //使用插件并传递参数
+  Vue.use(plugins,22,111,333)
+  
+  new Vue({
+      render: h => h(App)
+  }).$mount('#app')
+  ```
+
++ 组件`School`使用插件定义的功能
+
+  ```vue
+  
+  <template>
+    <div>
+      <h1 v-text="msg"></h1>
+      <!-- 使用自定义过滤器 已经挂载到Vue原型上了 -->
+      <h4>学生姓名：{{name|myFilter}} </h4>
+        <!-- 使用自定义指令 -->
+      <input type="text" v-fbind:value="name" />
+      <!-- hello=this.hello这里的this就是vc -->
+      <button @click="hello">hello</button>
+    </div>
+  </template>
+  
+  <script>
+  
+  export default {
+      name:'Student',
+      data(){
+          return {
+              msg: '欢迎，',
+              name: '张三'
+          }
+      }
+  }
+  </script>
+  ```
+
++ 测试运行
+
+  <img src='img/Vue笔记/image-20230829162918613.png'>
+
+  <img src='img/Vue笔记/image-20230829163006073.png'>
 
 ## 3.5 Todo-list
 

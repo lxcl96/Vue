@@ -1,5 +1,6 @@
+// 初始脚手架
 /**
- * mauin.js为vue项目的入口文件
+ * main.js为vue项目的入口文件
  */
 //导入Vue
 import Vue from 'vue'

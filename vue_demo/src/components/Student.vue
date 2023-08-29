@@ -1,48 +1,24 @@
+
 <template>
   <div>
     <h1 v-text="msg"></h1>
-    <h4>学生姓名：{{name}} </h4>
-    <h4>学生性别：{{sex}} </h4>
-    <h4>学生年龄：{{age}} </h4>
+    <!-- 使用自定义过滤器 已经挂载到Vue原型上了 -->
+    <h4>学生姓名：{{name|myFilter}} </h4>
+    <input type="text" v-fbind:value="name" />
+    <!-- hello=this.hello这里的this就是vc -->
+    <button @click="hello">hello</button>
   </div>
 </template>
 
 <script>
+
 export default {
     name:'Student',
     data(){
-      console.log(this);
         return {
-            msg:'欢迎，'
+            msg: '欢迎，',
+            name: '张三'
         }
-    },
-    //props的简单配置
-    //props: ['age','name','sex']
-    //props的进阶配置
-    /*
-    props:{
-      name:String,
-      sex:String,
-      age:Number
-    }*/
-    //props的高级配置
-    props:{
-      name:{
-        type: String,
-        required: true,
-      },
-      sex:{
-        type: String,
-        required: true,
-      },
-      age: {
-        type: Number,
-        default: 22
-      }
     }
 }
 </script>
-
-<style>
-
-</style>

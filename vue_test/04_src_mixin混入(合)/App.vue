@@ -1,3 +1,4 @@
+// mixin使用
 <template>
     <div>
         <Student /> <hr>

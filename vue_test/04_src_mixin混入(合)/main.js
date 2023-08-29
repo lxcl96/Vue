@@ -1,9 +1,11 @@
 import Vue from 'vue'
 import App from './App'
-import plugins from './plugins'
+//引入mixin文件
+import {mixin} from './mixin'
 
 Vue.config.productionTip = false;
-Vue.use(plugins,22,111,333)
+//挂载到全局vue上
+Vue.mixin(mixin)
 
 new Vue({
     render: h => h(App)

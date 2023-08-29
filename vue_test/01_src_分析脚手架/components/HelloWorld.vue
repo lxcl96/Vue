@@ -1,3 +1,4 @@
+// 初始脚手架
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
