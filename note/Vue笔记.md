@@ -809,13 +809,34 @@ vm.$watch('isHot',function(newValue,oldValue){
 	<h1>再见3</h1>
 </div>
 
-<!-- vue中特有template标签，搭配v-if进行条件判断，最后dom中不会有template标签-，所以不会影响层次->
+<!-- vue中特有template标签，搭配v-if进行条件判断，最后dom中不会有template标签-，所以不会影响层次-->
 <template v-show='1 ===2 '>
     <h1>再见1</h1>
 	<h1>再见2</h1>
 	<h1>再见3</h1>
 </template>
 ```
+
+### 1.12.4 动态添加属性
+
+`:checked=true`表示给标签加上`checked`属性
+
+`:checked='todo.done'`表示根据todo.done的值动态给标签加上`checked`属性
+
+```html
+  <div>
+    <li>
+      <label>
+          <input type="checkbox" :checked='todo.done'/>
+          <span>{{todo.title}}</span>
+      </label>
+      <button class="btn btn-danger" style="display:none">删除</button>
+    </li>
+    <!-- <input type="checkbox" /> test <button>删除</button> -->
+  </div>
+```
+
+
 
 ## 1.13 列表渲染
 
@@ -2679,7 +2700,166 @@ console.log(this.$refs.stu);
 
   <img src='img/Vue笔记/image-20230829163006073.png'>
 
-## 3.5 Todo-list
+## 3.5 scoped样式
+
+### 3.5.1 引入
+
+在vue中的所有组件定义的样式（`<style>`标签中），最终都会汇总到`App.vue`这个最顶层的组件中。这就有可能导致**css样式冲突**，加入**scoped**（代表只在当前组件中有效）就可以解决这种情况。
+
+### 3.5.2 css冲突
+
++ 定义`School.vue`组件，声明样式
+
+  ```vue
+  <style>
+  .demo{
+    background-color: orange;
+  }
+  </style>
+  ```
+
++ 定义`Student.vue`组件，声明样式
+
+  ```vue
+  <style>
+  .demo{
+    background-color: blue;
+  }
+  </style>
+  ```
+
++ 顶级组件`App.vue`中使用`Student.vue`和`School.vue`
+
+  ```vue
+  <template>
+      <div>
+          <Student class="demo" /> <hr>
+      </div>
+  </template>
+      
+  <script>
+      //School组件和Student组件的样式style最终都会汇总到顶级组件中，就存在样式冲突
+      //School后引入就覆盖了Student组件 demo样式
+      import Student from './components/Student.vue'
+      import School from './components/School.vue'
+      export default {
+          name: 'App',
+          components: {Student}
+      }
+  </script>
+  <style>
+  
+  </style>
+  ```
+
++ 测试运行
+
+  <img src='img/Vue笔记/image-20230830144320809.png'>
+
+### 3.5.3 解决方法
+
+解决组件css样式冲突方法：**在每个组件中加上`scoped`属性，表示该样式只在当前组件中使用**
+
+```vue
+<style scoped>
+.demo{
+  background-color: blue;
+}
+</style>
+```
+
+### 3.5.4 原理
+
+每个组件的`style`打上`scoped`标签后，那么最后会被vue添加随机唯一的标签属性如：`data-v-xxxx`
+
++ `data-v-7ba5bd90` 代表是最外层的组件`App.vue`中`style`
++ `data-v-22321ebb` 代表是组件`Student.vue`中`style`
++ `data-v-3375b0b8` 代表是组件`School.vue`中`style`
+
+那么如果想定位某个元素比如下面圈：
+
+- class选择器+标签属性选择器 `.demo[data-v-22321ebb]`
+
+<img src='img/Vue笔记/image-20230831135200697.png'>
+
+### 3.5.5 注意事项
+
+vue中可以指定样式语法`css`或`less`
+
++ `css`
+
+  ```vue
+  //不加lang默认就是css  scoped表示作用域
+  <style lang='css' scoped>
+  .demo{
+    background-color: blue;
+  }
+  </style>
+  ```
+
++ `less`
+
+  ```vue
+  <style lang='less' scoped>
+  .demo{
+    background-color: blue;
+  }
+  </style>
+  ```
+
+  > 使用`less`如果出现报错`Module not found: Error: Can't resolve 'less-loader' in 'D:\0\JWork\vscode\Vue\src\vue_demo'`则表示需要安装`less-loader`插件
+  >
+  > 温馨提示：注意`less-loader`要兼容`vue`中`webpack`版本
+
+### 3.5.6 顶层组件`App.vue`中`scoped`
+
+由于所有组件中`style`最后都会汇总在`App.vue`中，所以直接在`App.vue`中声明的`style`**对子组件内及自身都有效**，如果`App.vue`中指定了`scoped`，那么其自身的`style`**只对自身有效，对子组件内无效**。
+
+> 子组件内：就是`school.vue`中
+>
+> 自身：就是`App.vue`中，包括子组件的标签`<School />`
+
+## 3.6 组件化编码流程
+
++ 实现静态组件
+
+  抽取组件，使用组件实现静态页面效果
+
++ 展示动态数据
+
+  - 数据的类型，名称是什么？
+  - 数据保存在哪个组件？
+
++ 交互-从绑定事件监听开始
+
+## 3.7 Todo-list项目
+
+### 3.7.1 分析
+
+将项目拆分为如下5个组件：
+
+<img src='img/Vue笔记/image-20230830151836147.png'>
+
+### 3.7.2 实现静态组件
+
+### 3.7.3 展示动态数据
+
+> 注意：vc中`data`,`methods`,`props`,`computed`这些中的名字一定不能重复，否则会报错
+
+#### 3.7.3.1 数据的类型，名称是什么？
+
++ 数据类型：事件Item用**数组+对象**的类型存储
++ 名称： todos
+
+#### 3.7.3.2 数据保存在哪个组件？
+
+在哪里展示，就放到哪里是`TodoList.vue`。但是由于没有学习到组件间通信，所以将数据保存在`App.vue`。
+
+<img src='img/Vue笔记/image-20230831151026980.png' width='80%' height='80%'>
+
+
+
+
 
 ## 3.6 Vue中的自定义事件
 
