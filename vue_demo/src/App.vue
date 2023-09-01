@@ -19,24 +19,17 @@ export default {
     name: 'App',
     components: {TodoHeader,TodoList,TodoFooter},
     data(){
+
+      // 简洁写法
+      var list = JSON.parse(localStorage.getItem("todos")) || []
+      /*
+      var list = localStorage.getItem("todos");
+      list=JSON.parse(list);
+      // console.log(list==null); {'id':"001","title":"睡觉","done":false}
+      if(!list) list=[];
+      */
       return {
-          todos:[
-            {
-              id: '001',
-              title: '抽烟',
-              done: false
-            },
-            {
-              id: '002',
-              title: '喝酒',
-              done: true
-            },
-            {
-              id: '003',
-              title: '烫头',
-              done: false
-            }
-          ]
+          todos:list
       }
     },
     methods:{
@@ -49,7 +42,10 @@ export default {
       },
       changeTodoStatus(id){
         this.todos.forEach((todo)=>{
-          if(todo.id === id) todo.done=!todo.done;
+          if(todo.id === id) {
+            todo.done=!todo.done;
+            // localStorage.setItem("todos",JSON.stringify(this.todos));
+          }
         });
       },
       delTodo(todo){
@@ -58,12 +54,27 @@ export default {
         }));
       },
       selectAllTodos(status){
-        this.todos.forEach(item=>item.done=status)
+        this.todos.forEach(item=>item.done=status);
+        // localStorage.setItem("todos",JSON.stringify(this.todos));
       },
       clearAllDoneTodos(){
         this.todos = this.todos.filter(todo=>{
           return !todo.done;
         })
+      }
+    },
+    // 使用监视来实现动态更新localStorage 比增加时新，删除时更新更简洁
+    watch:{
+      todos:{
+        immediate:false,
+        // 第二种方法：开启深度监视，那么属性值变化也会被监视到 就不需要在勾选时再次加代码了
+        deep:true,
+        handler(newValue,oldValue){
+          // 增加删除时才更新，所以需要看个数即可 发生变化那么肯定newValue!=oldValue 
+          // 引用数据地址不变，里面的值变化了，那么就需要TodoItem单独写 全选也是
+          // 第二种方法：开启深度监视，那么属性值变化也会被监视到
+          localStorage.setItem("todos",JSON.stringify(newValue));
+        }
       }
     }
 }

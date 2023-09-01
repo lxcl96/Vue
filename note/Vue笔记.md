@@ -2842,6 +2842,8 @@ vue中可以指定样式语法`css`或`less`
 
 ### 3.7.2 实现静态组件
 
+见代码
+
 ### 3.7.3 展示动态数据
 
 > 注意：vc中`data`,`methods`,`props`,`computed`这些中的名字一定不能重复，否则会报错
@@ -2853,11 +2855,161 @@ vue中可以指定样式语法`css`或`less`
 
 #### 3.7.3.2 数据保存在哪个组件？
 
++ 一个组件在用：**放在自身**
++ 一些组件在用：**放他他们的父组件**（如这次是`App.vue`，即状态提升）
+
 在哪里展示，就放到哪里是`TodoList.vue`。但是由于没有学习到组件间通信，所以将数据保存在`App.vue`。
 
 <img src='img/Vue笔记/image-20230831151026980.png' width='80%' height='80%'>
 
 
+
+### 3.7.4 实现交互
+
+见代码
+
+### 3.7.5 注意事项
+
++ `props`属性适用于：
+  - 父组件 ==> 子组件 通信
+  - 子组件 ==> 父组件 通信（需要父先给子一个函数）
++ 使用`v-model`时要切记：`v-model`绑定的值不能是`props`传递过来的，因为**`props`的值是不允许修改**的！
++ 若`props`传递过来的值是**对象类型（引用类型）**的值，修改对象中的属性时Vue不会报错，但是不推荐这样做！
+
+
+
+## 3.8 浏览器本地存储`webStorage`
+
++ 存储大小一般支持5M左右（不同浏览器会不一样）
++ 以**键值对**方式存储，且**均是字符串类型**（其余类型需要自己转换成字符串）
+
+### 3.8.1 `localStorage`
+
+是在`window`身上的，即可以简写：`window.localStorage=localStorage`
+
+#### 3.8.1.1 API
+
++ `localStorage.setItem(key,value)`存储一个数据
++ `localStorage.getItem(key)`读取一个数据
++ `localStorage.removeItem(key)`删除一个数据
++ `localStorage.clear()`清空当前域名下所有`localStorage`数据
+
+#### 3.8.1.2 生命周期
+
+默认是没有生命周期的
+
++ 可以存储附加信息来设置生命周期
++ 清除所有数据`ctrl+alt+del`
+
+#### 3.8.1.3 示例
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage</title>
+</head>
+<body>
+    <h2>LocalStage演示</h2>
+    <button onclick="saveData()">存储数据</button>
+    <button onclick="readData()">读取数据</button>
+    <button onclick="deleteData()">删除一个数据</button>
+    <button onclick="clearData()">清空数据</button>
+    <script>
+        function saveData(){
+            // window.localStorage 可以简写为 localStorage
+            var person = {name:"张三",age:18};
+            localStorage.setItem('test','hello!');
+            // 只能存储字符串
+            localStorage.setItem("zs",JSON.stringify(person));
+        }
+        function readData(){
+            console.log(localStorage.getItem("test"));
+            // 读取不存在的返回null而不是undefined
+            console.log(localStorage.getItem("hello"));
+            var obj=localStorage.getItem("zs");
+            console.log(JSON.parse(obj));
+        }
+        function deleteData(){
+            localStorage.removeItem("test");
+        }
+        function clearData(){
+            localStorage.clear();
+        }
+    </script>
+</body>
+</html>
+```
+
+### 3.8.2 `sessionStorage`
+
+是在`window`身上的，即可以简写：`window.sessionStorage=sessionStorage`
+
+#### 3.8.2.1 API
+
++ `sessionStorage.setItem(key,value)`存储一个数据
++ `sessionStorage.getItem(key)`读取一个数据
++ `sessionStorage.removeItem(key)`删除一个数据
++ `sessionStorage.clear()`清空当前域名下所有`sessionStorage`数据
+
+#### 3.8.2.2 生命周期
+
+默认是当前会话（当前标签页）
+
++ 可以存储附加信息来设置生命周期
++ 关闭当前浏览器会话窗口（标签页），直接关闭浏览器没用
++ 清除所有数据`ctrl+alt+del`
+
+> 1. 页面会话在浏览器打开期间一直保持，**并且重新加载或恢复页面仍会保持原来的页面会话（即直接关闭浏览器，再打开就是恢复页面即依然存在）**。
+> 2. 在新标签或窗口打开一个页面时会复制顶级浏览会话的上下文作为新会话的上下文，这点和 session cookies 的运行方式不同（**即如果是从一个页面打开一个新的窗口或者一个新的 tab 页`<a href="./demo2.html" target="_blank" >跳转到页面  2</a>`，那么这个页面会复制一个顶级窗口的 sessionStorage。**）。
+> 3. 打开多个相同的URL的Tabs页面，会创建各自的sessionStorage。
+> 4. 关闭对应浏览器tab，会清除对应的sessionStorage。
+
+#### 3.8.2.3 示例
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sessionStorage</title>
+</head>
+<body>
+    <h2>sessionStorage演示</h2>
+    <button onclick="saveData()">存储数据</button>
+    <button onclick="readData()">读取数据</button>
+    <button onclick="deleteData()">删除一个数据</button>
+    <button onclick="clearData()">清空数据</button>
+    <script>
+        function saveData(){
+            // window.sessionStorage 可以简写为 sessionStorage
+            var person = {name:"张三",age:18};
+            sessionStorage.setItem('test','hello!');
+            // 只能存储字符串
+            sessionStorage.setItem("zs",JSON.stringify(person));
+        }
+        function readData(){
+            console.log(sessionStorage.getItem("test"));
+            // 读取不存在的返回null而不是undefined
+            console.log(sessionStorage.getItem("hello"));
+            var obj=sessionStorage.getItem("zs");
+            console.log(JSON.parse(obj));
+        }
+        function deleteData(){
+            sessionStorage.removeItem("test");
+        }
+        function clearData(){
+            sessionStorage.clear();
+        }
+    </script>
+</body>
+</html>
+```
 
 
 
