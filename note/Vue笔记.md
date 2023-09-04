@@ -3013,7 +3013,331 @@ vue中可以指定样式语法`css`或`less`
 
 
 
-## 3.6 Vue中的自定义事件
+## 3.9 ==***组件自定义事件***==
+
+**组件自定义事件**是一种组件间通信的方式，适用于：**<font color='red'>子组件==>父组件</font>**。如：A是父组件，B是子组件，**B想给A传递数据，那么就要在A中给B绑定自定义事件**（<font color='red'>事件的回调在A中</font>）。
+
+类似`props`属性
+
+### 3.9.0 注意事项
+
++ 给谁(组件实例vc)绑定的事件，就用谁（那个vc）**触发`$emit`、解绑`$off`**这个自定义事件
+
++ `$emit(eventName,...data)`表示触发事件
+
++ `$on(eventName,func)`和`$once(eventNsme,func)`表示给事件绑定回调函数，触发了就调用，`$once`表示只触发一次
+
++ 组件标签上也可以绑定原生dom事件，使用`native`修饰符即
+
+  ```vue
+  <template>
+  	<div>
+          <!-- 
+  				ref方式绑定事件
+  				@即v-bind常规绑定事件
+  				
+  				@click.native原生的dom事件
+  			-->
+          <School ref="school" @secondEvent="demo" @click.native="show"/>
+      </div>
+  </template>
+  ```
+
++ 在`mounted()`中通过`this.$refs.xxx.$on('事件名',回调函数)`绑定自定义事件时,回调函数**要么配置在`methods`中，要么用箭头函数**否则会出现`this`指向问题。
+
+### 3.9.1 ==***绑定***==组件自定义事件
+
+#### 3.9.1.1 常规绑定
+
++ **父组件绑定事件**
+
+  ```vue
+  <template>
+      <div class="demo1">
+          <!-- 1.借助props属性实现子组件给父组件传递信息-->
+          <Student :receiveStudentName="receiveStudentName" />
+  
+          <!-- 2.借助自定义组件实现子组件给父组件传递信息
+                      这样就是父组件将自定义事件绑定给子组件的实例(即vc)
+                  第一种方法：标准写法
+                  v-on:sendToUp=""简写 @sendToUp=""
+              -->
+          <School v-on:sendToUp.once="receiveSchoolName"/>
+      </div>
+  </template>
+  <script>
+      import School from './components/School.vue'
+      export default {
+          name: 'App',
+          components: {School},
+          methods:{
+              //...args是es6语法 表示args数组接受其余参数
+              receiveSchoolName(name,..args){
+                  console.log("接收到学院名：",name);
+              }
+          }
+      }
+  </script>
+  ```
+
++ **子组件触发事件**
+
+  ```vue
+  <template>
+    <div class="demo">
+      <h4>学校：{{name}} </h4>
+      <!-- 自定义事件绑定到子组件实例上(即vc) -->
+      <button @click="sendSchoolNameToApp">点我给App传递学院名</button>
+    </div>
+  </template>
+  
+  <script>
+  
+  export default {
+      name:'School',
+      data(){
+          return {
+              name: '弱智学院'
+          }
+      },
+      methods:{
+        sendSchoolNameToApp(){
+          // this.$emit(自定义事件名,data1,data2,..) 这是触发事件动作
+          this.$emit('sendToUp',this.name);
+          // this.$emit('secondEvent');
+          // this.$emit('click');
+        }
+      }
+  }
+  </script>
+  ```
+
+#### 3.9.1.2 `ref` + `mounted()`方式绑定
+
+`ref`用于定位vc，`mounted()`用于确定在什么时机绑定事件
+
++ **父组件绑定事件**
+
+  ```vue
+  <template>
+      <div class="demo1">
+          <!-- .native表示dom原生事件-->
+          <School ref="school" @click.native="show"/>
+      </div>
+  </template>
+  <script>
+      import School from './components/School.vue'
+      export default {
+          name: 'App',
+          components: {School},
+          methods:{
+              //...args是es6语法 表示args数组接受其余参数
+              receiveSchoolName(name,..args){
+                  console.log("接收到学院名：",name);
+              },
+              mounted(){
+                  // 这里school就是标签上ref="school" 不是组件的名字 
+                  // $on表示当触发xxx事件，就执行回调函数
+                  //$once和$on功能一样，但是只触发一次
+                  this.$refs.school.$on("sendToUp",this.receiveSchoolName);
+                  // this.$refs.school.$once("sendToUp");   
+          }
+      }
+  </script>
+  ```
+
++ **子组件触发事件**
+
+  ```vue
+  <template>
+    <div class="demo">
+      <h4>学校：{{name}} </h4>
+      <!-- 自定义事件绑定到子组件实例上(即vc) -->
+      <button @click="sendSchoolNameToApp">点我给App传递学院名</button>
+    </div>
+  </template>
+  
+  <script>
+  
+  export default {
+      name:'School',
+      data(){
+          return {
+              name: '弱智学院'
+          }
+      },
+      methods:{
+        sendSchoolNameToApp(){
+          // this.$emit(自定义事件名,data1,data2,..) 这是触发事件动作
+          this.$emit('sendToUp',this.name);
+          // this.$emit('secondEvent');
+          // this.$emit('click');
+        }
+      }
+  }
+  </script>
+  ```
+
+#### 3.9.1.3 `ref` + `mounted()`方式绑定的坑
+
+##### I this指向问题
+
+```vue
+<template>
+    <div>
+        <School ref="school" @secondEvent="demo"/>
+    </div>
+</template>
+<script>
+    import School from './components/School.vue'
+    export default {
+        name: 'App',
+        components: {School},
+        methods:{
+            receiveSchoolName(name){
+                console.log("接收到学院名：",name);
+            },
+            demo(){
+                console.log("第二个自定义事件触发了...");
+            }
+        },
+        mounted(){
+            //1.正确的没问题 此处this指向App组件实例
+            this.$refs.school.$on("sendToUp",this.receiveSchoolName);
+            //2.有问题，函数内部this为调用的者vc的执行（即）School
+            this.$refs.school.$on("sendToUp",function (name) {
+                //此处this指向School组件实例
+                 console.log("接收到学院名：",name,this);
+            });
+            //3.没问题，箭头函数没有this指向上级this
+            
+        }
+    }
+</script>
+```
+
+##### II 组件标签中事件与原生dom事件冲突
+
+```vue
+<template>
+	<div>
+        <!-- 这样写，vue会把click当作是自定义事件解析，点击标签无法触发 需要 在被绑定的vc上执行this.$emit-->
+        <School ref="school" @secondEvent="demo" @click="show"/>
+        <!-- 使用原生dom事件的正确绑定方法  @click.native="" native关键字表示原生的  -->
+        <School @click.native="show"/>
+    </div>
+</template>
+<script>
+    import School from './components/School.vue'
+    export default {
+        name: 'App',
+        components: {School},
+        methods:{
+            receiveSchoolName(name){
+                console.log("接收到学院名：",name);
+            },
+            demo(){
+                console.log("第二个自定义事件触发了...");
+            },
+            show(){
+                alert(123);
+            }
+        },
+        mounted(){
+            // this.$refs.school.$on("sendToUp",this.receiveSchoolName);
+            // this.$refs.school.$on("sendToUp",function (name) {
+            //      console.log("接收到学院名：",name,this);
+            // });
+            this.$refs.school.$on("sendToUp",(name)=>{
+                console.log("接收到学院名：",name,this);
+            });
+
+        }
+    }
+</script>
+```
+
+### 3.9.2 ==***解绑***==组件自定义事件
+
++ **父组件绑定事件**
+
+  ```vue
+  <template>
+      <div class="demo1">
+          <School ref="school" @secondEvent="demo" @click.native="show"/>
+      </div>
+  </template>
+  <script>
+      import School from './components/School.vue'
+      export default {
+          name: 'App',
+          components: {School},
+          methods:{
+              //  ...args是es6语法 表示args数组接受其余参数
+              receiveSchoolName(name,...args){
+                  console.log("接收到学院名：",name);
+              },
+              demo(){
+                  console.log("第二个自定义事件触发了...");
+              },
+              show(){
+                  alert(123);
+              }
+          },
+          mounted(){
+              // this.$refs.school.$on("sendToUp",this.receiveSchoolName);
+              // this.$refs.school.$on("sendToUp",function (name) {
+              //      console.log("接收到学院名：",name,this);
+              // });
+              this.$refs.school.$on("sendToUp",(name)=>{
+                  console.log("接收到学院名：",name,this);
+              });
+  
+          }
+      }
+  </script>
+  ```
+
++ **子组件解绑事件`$off`**
+
+  ```vue
+  <template>
+    <div class="demo">
+      <h4>学校：{{name}} </h4>
+      <!-- 自定义事件绑定到子组件实例上(即vc) -->
+      <button @click="sendSchoolNameToApp">点我给App传递学院名</button>
+        <!-- 解绑-->
+      <button @click="unbindSchool">点我解绑School的自定义事件</button>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'School',
+      data(){
+          return {
+              name: '弱智学院'
+          }
+      },
+      methods:{
+        sendSchoolNameToApp(){
+          // this.$emit(自定义事件名,data1,data2,..) 这是触发事件动作
+          this.$emit('sendToUp',this.name);
+          this.$emit('secondEvent');
+          // this.$emit('click');
+        },
+        unbindSchool(){
+          // $off解绑
+           this.$off('sendToUp');//解绑一个自定义事件，即secondEvent事件还是会被触发
+          // this.$off(['sendToUp','secondEvent']);//解绑多个自定义事件 数组
+          //this.$off();//解绑当前组件的所有自定义事件
+        }
+      }
+  }
+  </script>
+  ```
+
++ 
 
 ## 3.7 全局事件总线
 
