@@ -1891,9 +1891,7 @@ Demo.prototype.x = 99;
 console.log(d1.x);//等于d1.__proto__.x
 ```
 
-
-
-### 2.3.6 ==***Vue和VueComponent的关系***==
+### 2.2.6 ==***Vue和VueComponent的关系***==
 
 ***实例的隐式原型属性，永远指向自己缔造者的原型对象***
 
@@ -3337,11 +3335,223 @@ vue中可以指定样式语法`css`或`less`
   </script>
   ```
 
-+ 
+## 3.7 全局事件总线(GlobalEventBus)
 
-## 3.7 全局事件总线
+**借助`Vue`原型和`mounted()`，实现任意组件间通信**
+
+```javascript
+Vue.prototype=VueComponent.prototype._proto_
+//vc的是隐式原型链
+Vue.prototype=vc._proto_._proto_
+```
+
+### 3.7.0 原理图
+
+<img src='img/Vue笔记/全局事件总线原理图.png'>
+
+### 3.7.1 安装全局事件总线
+
+因为要用到`Vue`的原型，那么就必须在入口文件`main.js`中写：
+
++ 通过组件实例vc，安装全局事件总线
++ 通过vm借助生命周期钩子函数，安装全局事件总线
+
+```javascript
+import Vue from 'vue'
+import App from './App'
+
+Vue.config.productionTip = false;
+/* 全局事件总线 就是把第三者组件挂载到Vue原型上以供所有的vc使用 所以有两种方法：
+	1、通过组件实例vc
+    2、通过vm借助生命周期钩子函数
+*/
+//1、通过组件实例vc挂载
+// const Bus =Vue.extend({});
+// Vue.prototype.$bus=new Bus();
+new Vue({
+    render: h => h(App),
+    // 2、通过vm借助生命周期钩子函数，更标准
+    beforeCreate(){
+        // 安装全局事件总线，$bus就是当前应用的vm
+        Vue.prototype.$bus=this
+    }
+}).$mount('#app')
+```
+
+### 3.7.2 使用全局事件总线
+
+#### 3.7.2.1 接受数据方组件绑定事件`$on`
+
+```vue
+<template>
+  <div class="demo">
+    <h4>学校：{{name}} </h4>
+  </div>
+</template>
+
+<script>
+export default {
+    name:'School',
+    data(){
+        return {
+            name: '弱智学院',
+            stuName:""
+        }
+    },
+    mounted(){
+      // console.log(this);
+      // $on 绑定事件 第二参数为事件被触发时的回调函数
+      this.$bus.$on("studentName",(data)=>{
+        this.stuName=data;
+        alert("接受到来自student组件的数据:" + this.stuName);
+      });
+    },
+    // 在销毁前解绑事件，更标准，因为这个是通用组件
+    beforeDestory(){
+      // 注意要指定解绑的事件名字
+      this.$bus.$off('studentName')
+    }
+}
+</script>
+```
+
+#### 3.7.2.2 发送方组件触发事件`$emit`
+
+```vue
+<template>
+  <div>
+    <h1 v-text="msg"></h1>
+    <h4 class="demo">学生姓名：{{name}}</h4>
+    <button @click="sendStudentNameToApp">点我给兄弟组件School传递学生名</button>
+  </div>
+</template>
+
+<script>
+export default {
+    name:'Student',
+    data(){
+        return {
+            msg: '欢迎，',
+            name: '张三'
+        }
+    },
+    methods:{
+      sendStudentNameToApp(){
+        // Vue的原型对象上属性可以通过原型链获取到
+        this.$bus.$emit('studentName',this.name);
+      }
+    }
+}
+</script>
+```
+
+#### 3.7.2.3 运行测试
+
+<img src='img/Vue笔记/image-20230906142856708.png'>
+
+### 3.7.3 注意事项
+
++ **接受数据方组件`School`借助`mounted()`周期函数绑定全局事件**
++ **接受数据方组件`School`最好在销毁前`beforeDestory(){}`中解绑`$off`该组件绑定的全局事件，因为`$bus`是通用的**
 
 ## 3.8 消息订阅与发布
+
+一种组件间通信的方式，适用于**任意组件间通信**。只是一种思想，没有标准的官方库，本次采用`pubsub-js`这个库。
+
+### 3.8.1 原理
+
+例子说是邮局订报纸，但是我觉得更像是广播
+
+<img src='img/Vue笔记/image-20230906151421569.png'>
+
+### 3.8.2 使用
+
+#### 3.8.2.1 安装`pubsub-js`
+
+```bash
+npm i pubsub-js
+```
+
+#### 3.8.2.2 订阅者订阅指定消息
+
++ 引入第三方库`pubsub`
++ 使用`subscribe`订阅指定消息`demo`
++ 最好在组件销毁前，使用`unsubscribe`取消消息订阅
+
+```vue
+<template>
+  <div class="demo">
+    <h4>学校：{{name}} </h4>
+  </div>
+</template>
+
+<script>
+// 引入第三方库
+import pubsub from 'pubsub-js'
+export default {
+    name:'School',
+    data(){
+        return {
+            name: '弱智学院',
+            stuName:""
+        }
+    },
+    mounted(){
+      // 订阅消息，第一个参数为消息名称，第二个参数为回调函数【发布者发布demo消息后会自动调用】
+      // 回调函数有两个参数：1、消息名称，2、接受到的数据
+      // 注意subscribe函数会返回一个pid，在取消订阅时使用
+      this.pid=pubsub.subscribe('demo',(msgName,data)=>{
+        // 常规函数方式里面this会丢失，箭头函数会自动找上一级
+        this.stuName=data;
+        console.log("接受到来自student组件的数据:" + this.stuName);
+      })
+    },
+    beforeDestory(){
+      // 取消订阅消息（注意这个和事件不一样），参数是pid而不是消息名称 
+      pubsub.unsubscribe(this.pid);
+    }
+}
+</script>
+```
+
+#### 3.8.2.3 发布者发布指定消息
+
++ 引入第三方库`pubsub`
++ 使用`publish`发布指定消息`demo`
+
+```vue
+<template>
+  <div>
+    <h1 v-text="msg"></h1>
+    <h4 class="demo">学生姓名：{{name}}</h4>
+    <button @click="sendStudentNameToApp">点我给兄弟组件School传递学生名</button>
+  </div>
+</template>
+
+<script>
+// 引入第三方库
+import pubsub from 'pubsub-js'
+export default {
+    name:'Student',
+    data(){
+        return {
+            msg: '欢迎，',
+            name: '张三'
+        }
+    },
+    methods:{
+      sendStudentNameToApp(){
+        // 发布指定消息 第一个参数为指定消息名，第二个参数为要传递的数据
+        pubsub.publish('demo',this.name);
+      }
+    }
+}
+</script>
+```
+
+#### 3.8.2.4 测试运行
+
+<img src='img/Vue笔记/image-20230906154543433.png'>
 
 ## 3.9 过度与动画
 
