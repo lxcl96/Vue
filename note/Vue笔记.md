@@ -3553,25 +3553,595 @@ export default {
 
 <img src='img/Vue笔记/image-20230906154543433.png'>
 
-## 3.9 过度与动画
+## 3.9 `$nextTick`
+
++ 语法：
+
+  `this.$nextTick(回调函数)`
+
++ 作用：
+
+  **在下一次DOM更新结束后自定执行该回调函数**
+
++ 什么时候用？ 
+
+  **当改变数据后，要根据新dom中元素进行某些操作（如focus），要在$nextTick所指定的回调函数中执行**
+
++ 示例
+
+  ```javascript
+  edit(todo){ 
+      //props属性最好不要直接改，用事件来操作(下面是直接操作的)
+      // todo.isEdit=true;
+      // 响应式数据添加$set  才会有对应get和set方法，才能使v-model生效 
+      if(!todo.hasOwnProperty('isEdit')) this.$set(todo,'isEdit',true);
+      else todo.isEdit=true;
+      /*
+            下面这样写不生效，这是因为当前input没有显示，所以让一个不生效的input获取焦点会失败的
+            原理就是vue在edit这个函数完全执行完后才会重新解析模版，不是改一个立马生效
+            解决方法：
+              1、使用setTimeout定时器
+              2、使用$nextTick函数，该函数内指定一个回调函数f，f会在下一次dom重新解析后执行
+          */
+      // this.$refs.inputBox.focus();//不生效
+      // setTimeout(()=>{this.$refs.inputBox.focus()},200)//方法1
+      this.$nextTick(function(){
+          this.$refs.inputBox.focus()
+      })
+  }
+  ```
+
+## 3.10 过度与动画
+
+在进入/离开的过渡中，会有 **6 个 class属性** 切换。
+
+1. `v-enter`：定义进入过渡的开始状态。在元素被插入之前生效，在元素被插入之后的下一帧移除。
+2. `v-enter-active`：定义进入过渡生效时的状态。在整个进入过渡的阶段中应用，在元素被插入之前生效，在过渡/动画完成之后移除。这个类可以被用来定义进入过渡的过程时间，延迟和曲线函数。
+3. `v-enter-to`：**2.1.8 版及以上**定义进入过渡的结束状态。在元素被插入之后下一帧生效 (与此同时 `v-enter` 被移除)，在过渡/动画完成之后移除。
+4. `v-leave`：定义离开过渡的开始状态。在离开过渡被触发时立刻生效，下一帧被移除。
+5. `v-leave-active`：定义离开过渡生效时的状态。在整个离开过渡的阶段中应用，在离开过渡被触发时立刻生效，在过渡/动画完成之后移除。这个类可以被用来定义离开过渡的过程时间，延迟和曲线函数。
+6. `v-leave-to`：**2.1.8 版及以上**定义离开过渡的结束状态。在离开过渡被触发之后下一帧生效 (与此同时 `v-leave` 被删除)，在过渡/动画完成之后移除。
+
+<img src='img/Vue笔记/过渡的六个状态png.png'>
+
+### 3.10.1 单元素`CSS3`动画
+
+然后再配合函数动态修改`h1`的`class`属性即可
+
+```vue
+<template>
+  <div>
+    <button @click="isShow=!isShow">显示/隐藏</button>
+    <br>
+    <h1 v-show="isShow" class="come">你好啊！</h1>
+  </div>
+</template>
+
+<script>
+export default {
+    name:"Test",
+    data(){
+        return{isShow:true}
+    }
+}
+</script>
+
+<style scoped>
+h1{
+    background-color: orange;
+}
+
+/* 使用动画  默认就是from*/
+.come{
+    animation: change 1s linear;
+}
+/* 使用动画  reverse就是to*/
+.go{
+    /* 播放动画：动画名 持续事件 平滑播放 反转播放 */
+    animation: change 1s linear reverse;
+}
+/* 定义动画 */
+@keyframes change {
+    /* from是动画来的关键字 */
+    from{
+        transform: translateX(-100%) ;
+    }
+    /* to是动画去的关键字 */
+    to{
+        transform: translateX(0px);
+    }
+}
+</style>
+```
 
 
 
+### 3.10.2 单元素过渡`Transition` + `CSS3`动画
 
+细节太多了看官网文档把
+
+官网链接：
+
++ https://v2.cn.vuejs.org/v2/api/#transition
++ https://v2.cn.vuejs.org/v2/guide/transitions.html
+
+使用方法：
+
+```vue
+<template>
+  <div>
+    <button @click="isShow=!isShow">显示/隐藏</button>
+    <br>
+    <transition>
+        <h1 v-show="isShow">你好啊！</h1>
+    </transition>
+  </div>
+</template>
+
+<script>
+export default {
+    name:"Test",
+    data(){
+        return{isShow:true}
+    }
+}
+</script>
+
+<style scoped>
+h1{
+    background-color: orange;
+}
+
+/* 进入的过程 */
+.v-enter-active{
+    animation: change 1s linear;
+}
+
+    /* 离开的过程*/
+.v-leave-active{
+    animation: change 1s linear reverse;
+}
+/* 定义动画 */
+@keyframes change {
+    /* from是动画来的关键字 */
+    from{
+        transform: translateX(-100%) ;
+    }
+    /* to是动画去的关键字 */
+    to{
+        transform: translateX(0px);
+    }
+}
+</style>
+```
+
+### 3.10.3 单元素过渡`Transition`
+
+```vue
+<template>
+  <div>
+    <button @click="isShow=!isShow">显示/隐藏</button>
+    <br>
+    <transition name="show" appear>
+        <h1 v-show="isShow">你好啊！</h1>
+    </transition>
+  </div>
+</template>
+
+<script>
+export default {
+    name:"Test",
+    data(){
+        return{isShow:true}
+    }
+}
+</script>
+
+<style scoped>
+h1{
+    background-color: orange;
+}
+/* 要求：从左侧滑入屏幕，再从屏幕滑出左侧 */
+/* 使用过渡实现效果 过渡有6个阶段 即6个class属性值 */
+/* 阶段1：进入起点 */
+.show-enter{ 
+    /* 定义起始位置 */
+    transform: translateX(-100%);
+}
+/* 阶段2：进入的过程 */
+.show-enter-active{
+    /* 太快了，所以需要过程动画  注意关键字为：transition而不是animation */
+    transition: .5s linear;
+}
+/* 阶段3：进入的终点 */
+.show-enter-to{
+    /* 定义终点位置 */
+    transform: translateX(0);
+}
+/* 阶段4：离开的起点 */
+.show-leave{
+    /* 定义离开起始位置 */
+    transform: translateX(0);
+}
+/* 阶段5：离开的过程  */
+.show-leave-active{
+     /* 太快了，所以需要过程动画 注意关键字为：transition而不是animation */
+    transition: .5s linear;
+}
+/* 阶段6：离开的终点 */
+.show-leave-to{
+    /* 定义离开终点位置 */
+    transform: translateX(-100%);
+}
+
+/*
+    因为样式两两一样，所以可以合并写
+    .show-enter,.show-leave-to{
+        
+    }
+
+*/
+</style>
+```
+
+### 3.10.4 多个元素过渡`transition-group`
+
+官网：https://v2.cn.vuejs.org/v2/api/#transition-group
+
+```vue
+<template>
+  <div>
+    <button @click="isShow=!isShow">显示/隐藏</button>
+    <br>
+    <!-- 
+        transition里面必须只能是一个标签
+        方法1：用一个整体的div包裹
+            <transition name="show" appear>
+                <div>
+                    <h1 v-show="isShow">你好啊！</h1>
+                    <h1 v-show="isShow">张三</h1>
+                </div>
+            </transition>
+        方法2：使用transition-group标签
+     -->
+    <transition-group name="show" appear>
+        <!-- 必须搭配 key使用-->
+        <h1 v-show="isShow" key="1">你好啊！</h1>
+        <h1 v-show="isShow" key='2'>张三</h1>
+    </transition-group>
+  </div>
+</template>
+
+<script>
+export default {
+    name:"Test",
+    data(){
+        return{isShow:true}
+    }
+}
+</script>
+
+<style scoped>
+h1{
+    background-color: orange;
+}
+/* 要求：两个标签同时从左侧滑入屏幕，再从屏幕滑出左侧 */
+.show-enter,.show-leave-to{ 
+    transform: translateX(-100%);
+}
+.show-enter-active,.show-leave-active{
+    transition: .5s linear;
+}
+.show-enter-to,show-leave{
+    transform: translateX(0);
+}
+
+
+</style>
+```
+
+### 3.10.5 使用第三方动画库`animate.css`
+
++ 安装
+
+  ```bash
+  npm install animate.css --save
+  ```
+
++ 引入
+
+  ```java
+  <script>
+  // 引入动画库 animate.css
+  import "animate.css"
+  export default {
+      name:"Test",
+      data(){
+          return{isShow:true}
+      }
+  }
+  </script>
+  ```
+
++ 使用
+
+  ```vue
+  <template>
+    <div>
+      <button @click="isShow=!isShow">显示/隐藏</button>
+      <br>
+      <!-- 选则自己喜欢动画 
+      		去https://animate.style/ 查找 直接复制
+  		1、写name属性 这个是固定的
+  		2、选择进入动画 enter-active-class
+  		3、选择离开动画 leave-active-class
+      -->
+      <transition-group 
+          name="animate__animated animate__bounce" 
+          appear
+          enter-active-class="animate__bounce"
+          leave-active-class="animate__rubberBand"
+          >
+          <h1 v-show="isShow" key="1">你好啊！</h1>
+          <h1 v-show="isShow" key='2'>张三</h1>
+      </transition-group>
+    </div>
+  </template>
+  
+  <script>
+  // 引入动画库 animate.css
+  import "animate.css"
+  export default {
+      name:"Test",
+      data(){
+          return{isShow:true}
+      }
+  }
+  </script>
+  
+  <style scoped>
+  h1{
+      background-color: orange;
+  }
+  </style>
+  ```
+
+  
 
 
 
 # 4、Vue中的ajax
 
+## 4.0 引入
+
+### 4.0.1 前端请求方式
+
+浏览器发送请求的几种方式：
+
++ xhr即`XmlHttpRequest`
++ JQuery
++ Axios
++ 浏览器`window`自带的`fetch`
+
+### 4.0.2  跨域问题
+
++ **问题产生的原因**
+
+  > 同源策略导致的，即需要两个页面地址中的协议，域名，端口号一致，则表示同源。
+
+  <img src='img/Vue笔记/image-20230907160704891.png'>
+
++ **跨域的特点**
+
+  > 跨域时**请求能发送出去，服务端收到并且也有返回值，但是返回信息被自己的浏览器拦截了**
+
++ **跨域的解决方式**
+
+  > 1、后端返回数据带特殊的响应头，表示运行跨域
+  > 2、jsonp ，利用的是script标签的src属性不受同源策略的影响 只能解决get请求
+  > 3、代理服务器，如nginx或者vue中的devServer
+
+## 4.1 Axios简单使用
+
+文档：https://www.axios-http.cn/docs/api_intro
+
++ 安装
+
+  ```bash
+  npm i axios
+  ```
+
++ 导入使用
+
+  本次API：`axios.get(url,[method,data:{}]).then(response=>{},err=>{}).catch(err=>{})`
+
+  ```vue
+  <template>
+      <div>
+        <button @click="getStuInfo">点我获取学生信息</button>
+      </div>
+  
+  </template>
+      
+  <script>
+  import axios from 'axios'
+  export default {
+      name: 'App',
+      methods: {
+        getStuInfo(){
+          axios.get(
+            'http://localhost:5000/students',
+          ).then(
+            response=>{
+              console.log(response);
+            },
+            err=>{
+              console.log(err);
+            }
+          )
+        }
+      }
+  }
+  </script>
+  ```
+
+## 4.2 vue中解决跨域问题`devServe`
+
+文档：https://cli.vuejs.org/zh/config/#devserver-proxy
+
+Vue中解决跨域问题就是在Vue的配置文件`vue.config.js`中开启`devServer`，其原理就是相当于开启一个同端口的服务器（如8080，当前vue项目端口也是8080），配置开启后会自动将跨域的请求转发到指定服务器上，利用的是HTTP请求，从而解决跨域问题。
+
+### 4.2.0 vue代理服务器执行逻辑
+
+> 前提：当前vue项目端口是8080，已开启代理服务`devServer`也是8080，目标数据服务器是5000端口
+
+**8080代理服务器不是所有的请求都转发给5000服务器**
+
++ **如果请求的资源8080本身就有，则直接返回本地8080项目的（如静态资源）**
++ **如果请求的资源8080本身没有，才会转发到5000服务器上**
+
+### 4.2.1 简单配置`vue.config.js`
+
+这种方式：**配置简单，请求资源直接转发；但是不能配置多个代理，不能灵活的控制是否走代理；当访问到前端不存在的资源时，才会转发给服务器（优先匹配前端资源）。**
+
++ 配置`vue.config.js`，开启`devServer`
+
+  ```javascript
+  const { defineConfig } = require('@vue/cli-service')
+  module.exports = defineConfig({
+    transpileDependencies: true,
+    //关掉js语法检查
+    lintOnSave:false,
+    devServer:{
+      proxy: 'http://localhost:5000'
+    }
+  })
+  ```
+
++ 修改请求的地址
+
+  > 如本来请求的是：http://localhost:5000/students，则需要改成**配置的代理服务器地址+请求路径**即：http://localhost:8080/students（实际项目ip和请求协议都有可能改变）
+
+  ```vue
+  <template>
+      <div>
+        <button @click="getStuInfo">点我获取学生信息</button>
+      </div>
+  
+  </template>
+      
+  <script>
+  import axios from 'axios'
+  export default {
+      name: 'App',
+      methods: {
+        getStuInfo(){
+          axios.get(
+            // 'http://localhost:5000/students', //开启代理前
+            'http://localhost:8080/students',//开启代理后
+          ).then(
+            response=>{
+              console.log(response);
+            },
+            err=>{
+              console.log(err);
+            }
+          )
+        }
+      }
+  }
+  </script>
+  ```
+
++ 运行结果
+
+  <img src='img/Vue笔记/image-20230907163431943.png'>
+
+### 4.2.2 详细配置`vue.config.js`
+
+```javascript
+const { defineConfig } = require('@vue/cli-service')
+module.exports = defineConfig({
+  devServer: {
+    proxy: {
+      //这个/api前缀(紧跟端口后面的)自己加的，用于筛选
+      '/api': { 
+        target: 'http://localhost:5000',//后端服务器实际地址,根据实际要不要加路径
+        ws: true,//是否使用websocket模式
+        /*
+          将请求路径重写，去掉自己加的前缀
+          如：前端配的是http://localhost:8080/api/students，前缀是/api符合，
+          就使用路径重写规则，将路径重写且转发变为http://localhost:5000/students
+        */
+        pathRewrite:{
+          '^/api':''//key为请求路径（被替换的），支持正则，value为替换的值
+        },
+        /*
+          是否改变请求头host的值
+          false：不改变，仍为实际地址和端口
+          true：改变，变为target路径的端地址和端口
+        */
+        changeOrigin: true
+      }
+    }
+  }
+})
+
+```
+
+# 5 vue小技巧
+
+## 5.1 引入第三方样式
+
+### 5.1.1 直接在HTML文件中引入
+
+```html
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link rel="stylesheet" href="./css/bootstrap.css">
+</head>
+```
+
+### 5.1.2 在vue文件的`script`中引入
+
+```vue
+<script>
+import '../../public/css/bootstrap.css'
+</script>
+```
+
+> 如果引入的外部文件中有不需要资源（如字体），就可以使用这种方法。不会报错，下面几种方法都会报错
+
+### 5.1.3 在vue文件的`style`中引入
+
++ `style`标签中引入
+
+  ```vue
+  <style scoped>
+  @import '../../public/css/index.css';
+  </style>
+  ```
+
+  > 使用@import引入样式文件，就算加scoped，其它没有引入的模块还是可以访问到你的样式，如果某个组件的类名一致，则就会被污染到。
+
++ `style`标签内引入
+
+  ```vue
+  //相对路径引入
+  <style src='../../public/css/index.css' scoped> 
+  </style>
+  ```
+
+  
+
+# 6、Vuex
 
 
-# 5、Vuex
 
+# 7、Vue-router
 
-
-# 6、Vue-router
-
-# 7、Vue UI组件库
+# 8、Vue UI组件库
 
 
 

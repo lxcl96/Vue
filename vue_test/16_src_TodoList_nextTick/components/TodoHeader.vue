@@ -14,12 +14,12 @@ export default {
             item:""
         }
     },
-    props:{
-      insert:{
-        type:Function,
-        require:true
-      }
-    },
+    // props:{
+    //   insert:{
+    //     type:Function,
+    //     require:true
+    //   }
+    // },
     methods:{
         pressEnter(event){
           //第二种方法通过事件获取value值
@@ -33,7 +33,8 @@ export default {
               done:false
             };
             //通过this调用
-            this.insert(itemObj);
+            // this.insert(itemObj);
+            this.$emit('addObj',itemObj)
             this.item="";
           }
         }

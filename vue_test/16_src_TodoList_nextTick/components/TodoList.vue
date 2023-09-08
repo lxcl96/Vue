@@ -5,8 +5,6 @@
     <TodoItem v-for="todo in todos" 
       :key="todo.id" 
       :todo="todo" 
-      :changeTodoStatus="changeTodoStatus"
-      :delTodo="delTodo"
     />
   </ul>
 </template>
@@ -19,14 +17,6 @@ export default {
     props:{
       todos:{
         type:Array,
-        require:true
-      },
-      changeTodoStatus:{
-        type:Function,
-        require:true
-      },
-      delTodo:{
-        type:Function,
         require:true
       }
     }

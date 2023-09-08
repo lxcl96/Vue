@@ -1,16 +1,16 @@
 <template>
   <div class="todo-footer" v-show="all">
-      <label>
-        <!-- 一般写法 -->
-      <!-- <input type="checkbox" @click="selectAll" :checked="isAll"/> -->
-      <!-- 借助v-model更好的写法 因为这里绑定的值我们并没有修改checked  我们改的是todos-->
-      <input type="checkbox" v-model:checked="isAll"/>
-      </label>
-      <span>
-      <span>已完成{{done}}</span> / 全部{{all}}
-      </span>
-      <button class="btn btn-danger" @click="clearAllDone">清除已完成任务</button>
-  </div>
+        <label>
+          <!-- 一般写法 -->
+        <!-- <input type="checkbox" @click="selectAll" :checked="isAll"/> -->
+        <!-- 借助v-model更好的写法 因为这里绑定的值我们并没有修改checked  我们改的是todos-->
+        <input type="checkbox" v-model:checked="isAll"/>
+        </label>
+        <span>
+        <span>已完成{{done}}</span> / 全部{{all}}
+        </span>
+        <button class="btn btn-danger" @click="clearAllDone">清除已完成任务</button>
+    </div>
 </template>
 
 <script>
@@ -40,18 +40,21 @@ export default {
         set(value){
           // 这里的value就是checked的值 true or false
           // console.log(value);
-          this.selectAllTodos(value);
+          // this.selectAllTodos(value);
+          this.$emit('selectAllTodos',value)
         }
       }
   },
-  props:['todos','selectAllTodos',"clearAllDoneTodos"],
+  // props:['todos','selectAllTodos',"clearAllDoneTodos"],
+  props:['todos'],
   methods:{
     // selectAll(event){
     //   // console.log(event.target.checked);
     //   this.selectAllTodos(event.target.checked);
     // },
     clearAllDone(){
-      this.clearAllDoneTodos();
+      // this.clearAllDoneTodos();
+      this.$emit('clearAllDoneTodos');
     },
   }
 }
@@ -84,4 +87,7 @@ export default {
   float: right;
   margin-top: 5px;
 }
+
+
+
 </style>
