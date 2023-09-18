@@ -4089,6 +4089,315 @@ module.exports = defineConfig({
 
 ```
 
+## 4.3 `vue-resource`
+
+同`axios`也是对`xhr`的封装，是vue **插件库(`vue.use使用`)**, vue1.x 使用广泛，官方已不维护。（了解）
+
+### 4.3.1 使用
+
++ 安装
+
+  ```bash
+  npm i vue-resource
+  ```
+
++ 入口文件`main.js`使用该插件
+
+  ```javascript
+  import Vue from 'vue'
+  import App from './App'
+  import vueResource from 'vue-resource'
+  
+  Vue.config.productionTip = false;
+  // 使用插件 那么所有的vc和vm身上就有个$http对象
+  Vue.use(vueResource);
+  new Vue({
+      render: h => h(App),
+      beforeCreate(){
+          Vue.prototype.$bus=this
+      }
+  }).$mount('#app')
+  ```
+
+  <img src='img/Vue笔记/image-20230913153521114.png'>
+
++ 使用方法和`axios`一样
+
+  ```javascript
+  this.$http.get(url,[config]).then(
+  	res=>{},
+     err=>{}
+  ).catch(err=>{}
+  ```
+
+## 4.4 slot插槽
+
+**作用：让父组件可以向子组件指定位置插入html结构，也是组件间通信的方式，适用于<font color='red'>父组件===>子组件</font>**
+
+插槽就是子组件中的提供给父组件使用的一个占位符，用`<slot></slot> `表示，父组件可以在这个占位符中填充任何模板代码，如 HTML、组件等，填充的内容会替换子组件的`<slot></slot>`标签。
+
+### 4.4.1 默认插槽
+
+#### 4.4.1.1 介绍
+
+**vue会将插槽代码在父组件先解析成dom元素（包括父组件的data，computed以及css样式等）整体带到子组件中。**
+
+> + 如果**插槽样式在父组件中**，则就是先解析成dom（包含样式），带入子组件的插槽位置
+> + 如果**插槽样式在子组件中**，则就是先解析成dom（不包含样式，因为父组件没有），带入子组件的插槽位置后再用子组件的样式
+> + 如果父组件也有相同选择器的样式定义（如img样式），则**共存，冲突的以子组件的为准 **
+
+#### 4.4.1.2 使用
+
+就是一个`slot`标签，**通过将组件标签写成双标签，内部来传入要显示的dom元素**
+
++ 父组件`App,vue`，声明要传入子组件的dom元素
+
+  ```vue
+  <template>
+    <div class="container">
+      <!-- slot插槽之默认插槽，用于解决复用的多样性
+        传递插槽值就是，将组件标签写成双标签，实际的元素写在其内部
+         -->
+      <Category :title="美食" :items="foods">
+          <!-- 要显示的dom元素-->
+        <img src="https://s3.ax1x.com/2021/01/16/srJlq0.jpg" />
+      </Category>
+      <Category :title="游戏" :items="games">
+          <!-- 要显示的dom元素-->
+        <ul>
+          <li v-for="(item,index) in games" :key="index">{{item}}</li>
+        </ul>
+      </Category>
+      <Category :title="电影" :items="films">
+          <!-- 要显示的dom元素-->
+        <video controls src="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"/>
+      </Category>
+    </div>
+  </template>
+      
+  <script>
+  import Category from './components/Category.vue'
+  export default {
+      name: 'App',
+      components: {Category},
+      data(){
+        return {
+          foods:['火锅','烧烤','小龙虾','牛排'],
+  				games:['红色警戒','穿越火线','劲舞团','超级玛丽'],
+  				films:['《教父》','《拆弹专家》','《你好，李焕英》','《尚硅谷》']
+        }
+      }
+  }
+  </script>
+  <style>
+  /* 设置三个并列 */
+  .container{
+    display: flex;
+    justify-content: space-around;
+  }
+   /* 样式定义在父组件，那么插槽值（Category标签内元素）解析带有此样式，传入子组件Category中 */   
+  video{
+    width: 100%;
+  }
+  </style>
+  ```
+
++ 子组件`Category.app`使用`<slot>`占位
+
+  ```vue
+  <template>
+    <div class="category">
+      <h3>{{title}}分类</h3>
+      <!-- slot标签就是插槽，相当于占位符。可以不传递插槽值过来，那么默认就显示其内部元素 -->
+      <slot>
+          <font color="red">不传递插槽值，默认显示！</font>
+      </slot>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'Category',
+      props:['title','items']
+  }
+  </script>
+  
+  <style scoped>
+  .category{
+      background-color: skyblue;
+      width: 200px;
+      height: 300px;
+  }
+  h3{
+      text-align: center;
+      background-color: orange;
+  }
+   /* 自带的样式，如果父组件也有img样式，则共存，冲突的以子组件的为准 */
+  img{
+      width: 100px;
+      height: 100px
+  }
+  </style>
+  ```
+
+### 4.4.2 具名插槽
+
+#### 4.4.2.1 介绍
+
+**具名插槽即具有名字的插槽，由于解决多插槽无法定位的问题。**
+
+#### 4.4.2.2 使用
+
++ 子组件`Category.vue`使用`<slot>`标签，并定义`name`属性
+
+  ```vue
+  <template>
+    <div class="category">
+      <h3>{{title}}分类</h3>
+      <!-- slot标签就是插槽，相当于占位符。可以不传递插槽值过来，那么默认就显示其内部元素 -->
+      <slot name='center'>
+          <font color="red">不传递插槽值，默认显示！1</font>
+      </slot>
+      <slot name="bottom">
+          <font color="red">不传递插槽值，默认显示！2</font>
+      </slot>
+    </div>
+  </template>
+  ```
+
++ 父组件`App.vue`使用插槽，并指定其`name`属性值（如果没有指定插槽name值，则会显示默认子组件slot标签结构）
+
+  ```vue
+  <template>
+    <div class="container">
+      <!-- slot插槽之具名插槽，通过name属性值用于使用指定插槽
+         -->
+      <Category :title="美食" :items="foods">
+        <!-- dom元素中使用slot指定name值 -->
+        <img slot='center' src="https://s3.ax1x.com/2021/01/16/srJlq0.jpg" />
+        <a href="#" slot="bottom">欢迎品尝</a>
+      </Category>
+      <Category :title="游戏" :items="games">
+        <ul slot="center">
+          <li v-for="(item,index) in games" :key="index">{{item}}</li>
+        </ul>
+        <!-- 父组件中多个slot属性值会叠加，不会覆盖 -->
+        <a href="#" slot="bottom">单机游戏 &nbsp</a>
+        <a href="#" slot="bottom">网络游戏</a>
+      </Category>
+      <Category :title="电影" :items="films">
+        <video slot="center" controls src="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"/>
+        <!-- 当有多个slot属性值时，可以使用template,没错就是template中使用template
+            slot搭配template简写为:v-slot:name值 （没有引号，中间是冒号,只能搭配template使用）
+           -->
+          <template v-solt:bottom>
+            <a href="#" >经典</a> 
+            <a href="#" >推荐</a>
+            <a href="#" >热销</a>
+          </template>
+  
+          <!-- 比这种方法省了一层div结构 -->
+          <!-- <div slot="bottom"> 
+            <a href="#" >经典</a> 
+            <a href="#" >推荐</a>
+            <a href="#" >热销</a>
+          </div> -->
+      </Category>
+    </div>
+  </template>
+  ```
+
+### 4.4.3 作用域插槽
+
+#### 4.4.3.1 介绍
+
+**作用域插槽即数据保存在子组件中，但是父组件（子组件的使用者）需要根据子组件中的数据，以生成不同的样式。那么就可以借助作用域插槽实现**
+
+> + 子组件借助`<slot>`标签，将自身的数据传递给插槽的使用者（父标签）
+> + 父组件借助`<template scope='dataObj'>`(dataObj可为任意值，是一个对象)标签接收子组件的数据，生成不用的样式dom
+> + `<template scope='dataObj'>`=`<template v-slot='dataObj'>`=`<template slot=scope='dataObj'>`
+> + 可以直接结构赋值`<template v-slot='{games}'>`,要求有子组件传递过来games的属性值
+
+#### 4.4.3.2 使用
+
++ 子组件`Category.vue`向父组件`App.vue`传递数据（类似于`props`）
+
+  ```vue
+  <template>
+    <div class="category">
+      <h3>{{title}}分类</h3>
+      <!-- 作用域插槽，v-bind 传递数据给父组件 -->
+      <slot :games="games">
+          <font color="red">不传递插槽值，默认显示！1</font>
+      </slot>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'Category',
+      props:['title'],
+      data(){
+        return {
+          games:['红色警戒','穿越火线','劲舞团','超级玛丽']
+        }
+      }
+  }
+  </script>
+  ```
+
++ 父组件`App.vue`接收子组件传递数据，必须是`template`标签加上`scope`属性（否则接收不到）
+
+  ```vue
+  <template>
+    <div class="container">
+      <!-- 作用域插槽 接受子组件数据 -->
+      <Category :title="游戏">
+          <!-- 必须是template+scope-->
+        <template scope="dataObj">
+          <ul>
+            <li v-for="(item,index) in dataObj.games" :key="index">{{item}}</li>
+          </ul>
+        </template> 
+      </Category>
+      <!-- 个性化 同一数据 -->
+      <Category :title="游戏">
+           <!-- 必须是template+scope-->
+        <template scope="dataObj">
+          <ol>
+            <li v-for="(item,index) in dataObj.games" :key="index">{{item}}</li>
+          </ol>
+        </template> 
+      </Category>
+      <!-- 个性化 同一数据 -->
+      <Category :title="游戏">
+           <!-- 必须是template+scope-->
+        <template scope="dataObj">
+          <ol>
+            <h4 v-for="(item,index) in dataObj.games" :key="index">{{item}}</h4>
+          </ol>
+        </template> 
+      </Category>
+    </div>
+  </template>
+      
+  <script>
+  import Category from './components/Category.vue'
+  export default {
+      name: 'App',
+      components: {Category}
+  }
+  </script>
+  ```
+
++ 测试运行
+
+  <img src='img/Vue笔记/image-20230918150715362.png'>
+
+### 4.4.4 具名作用域插槽
+
+> 具名作用域插槽=具名插槽+作用域插槽
+
 # 5 vue小技巧
 
 ## 5.1 引入第三方样式
