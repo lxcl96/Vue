@@ -4446,7 +4446,610 @@ import '../../public/css/bootstrap.css'
 
 # 6、Vuex
 
+## 6.1 Vuex是什么？
 
+**Vuex**：专门在Vue中实现**集中式状态（数据）管理**的一个Vue**插件**，对vue应用中的**多个组件的共享状态（数据）进行集中式的管理（读、写）**，也是**一种组件间通信的方式，且适用于任意组件间通信**。
+
+地址：https://github.com/vuejs/vuex
+
+文档：https://v3.vuex.vuejs.org/zh/
+
+### 6.1.1 什么时候使用Vuex
+
++ 多个组件依赖于同一状态（数据）
++ 来自不同组件的行为需要变更同一状态
+
+> 总结就是：方便不同组件间的**写操作**
+
+### 6.1.2 多组件共享之`全局事件` vs `Vuex`
+
+<img src='img/Vue笔记/多组件共享-全局事件总线实现.png'>
+
+<img src='img/Vue笔记/多组件共享-vuex实现.png'>
+
+## 6.2 Vuex工作原理图
+
+<img src='img/Vue笔记/Vuex工作原理.png'>
+
+## 6.3 [Vuex核心配置项](https://v3.vuex.vuejs.org/zh/guide/state.html#%E5%8D%95%E4%B8%80%E7%8A%B6%E6%80%81%E6%A0%91)**
+
+地址：https://v3.vuex.vuejs.org/zh/guide/state.html#%E5%8D%95%E4%B8%80%E7%8A%B6%E6%80%81%E6%A0%91
+
+### 6.3.1 `State`
+
+### 6.3.2 `Actions`
+
+### 6.3.3 `Mutations`
+
+### 6.3.4 `Getters`
+
+当`State`中数据需要进行加工后再使用时，可以使用`getters`(可以不用)
+
+```javascript
+//vuex中创建并暴露
+// 创建getters对象--用于加工数据
+const getters={
+    /*可以接受四个参数
+    	第一个参数state 表示当前命名空间的state
+    	第二个参数getters 表示当前命名空间的getters（包含里面所有方法）
+    	第三个参数state	表示整个vuex的state，封装有namespace的
+    	第四个参数getters	表示整个vuex的getters，封装有namespace的
+    	*/
+    bigSum(state){ //类似于computed
+        return state.sum*10;
+    }
+}
+// 创建并暴露store （注意是Store对象而不是Vuex）
+export default new Vuex.Store({
+    ...
+    getters
+})
+//使用getters
+this.$store.getters.bigSum
+```
+
+### 6.3.5 `mapState`
+
+将`vuex`中的`state`数据映射为组件的计算属性`computed`
+
+```vue
+<template>
+  <div>
+    <h2>当前求和为：{{sum}}</h2>
+    <h2>当前BigSum为：{{bigSum}}</h2>
+</template>
+
+<script>
+// 注意必修带{}
+import {mapState} from 'vuex'
+import {mapGetters} from 'vuex'
+export default {
+    name:'Count',
+    data(){
+        return {number:1}
+    },
+    computed: {
+        /*
+        mapState借助计算属性映射到vuex的state
+            第一种写法：对象写法  ...mapState({sum:'sum'})//类似于结构体赋值
+            第二种写法：数组写法  ...mapState(['sum'])//即代表计算属性ming为sum且映射的state中sum
+        */
+       ...mapState(['sum']),
+       ...mapGetters({bigSum:'bigSum'})
+    }
+}
+</script>
+```
+
+> ...参考 [JS中三个点（...）是什么鬼？](https://blog.csdn.net/xqhys/article/details/105736902#:~:text=%E4%BB%80%E4%B9%88%E6%84%8F%E6%80%9D%EF%BC%9F,%E4%B8%89%E4%B8%AA%E7%82%B9%EF%BC%88...%EF%BC%89%E7%9C%9F%E5%90%8D%E5%8F%AB%E6%89%A9%E5%B1%95%E8%BF%90%E7%AE%97%E7%AC%A6%EF%BC%8C%E6%98%AF%E5%9C%A8ES6%E4%B8%AD%E6%96%B0%E5%A2%9E%E5%8A%A0%E7%9A%84%E5%86%85%E5%AE%B9%EF%BC%8C%E5%AE%83%E5%8F%AF%E4%BB%A5%E5%9C%A8%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%2F%E6%95%B0%E7%BB%84%E6%9E%84%E9%80%A0%E6%97%B6%EF%BC%8C%E5%B0%86%E6%95%B0%E7%BB%84%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%88%96%E8%80%85string%E5%9C%A8%E8%AF%AD%E6%B3%95%E5%B1%82%E9%9D%A2%E5%B1%95%E5%BC%80%EF%BC%9B%E8%BF%98%E5%8F%AF%E4%BB%A5%E5%9C%A8%E6%9E%84%E9%80%A0%E5%AD%97%E9%9D%A2%E9%87%8F%E5%AF%B9%E8%B1%A1%E6%97%B6%E5%B0%86%E5%AF%B9%E8%B1%A1%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%8C%89%E7%85%A7key-value%E7%9A%84%E6%96%B9%E5%BC%8F%E5%B1%95%E5%BC%80)
+
+### 6.3.6 `mapGetters`
+
+同`mapState`
+
+将`vuex`中的`getters`数据映射为组件的计算属性`computed`
+
+### 6.3.7 `mapMutations`
+
+将`vuex`中的`mutations`中**指定函数**映射为组件vc的**对应名字函数**`methods`
+
+```vue
+<template>
+  <div>
+    <h2>当前求和为：{{sum}}</h2>
+    <h2>当前BigSum为：{{bigSum}}</h2>
+    <select v-model:value.number='number'>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+    </select>
+    <!-- $event获取当前事件，必须带参数不然是默认的事件 -->
+    <button @click="ADD(number)">+</button>
+    <button @click="sub">-</button>
+  </div>
+</template>
+
+<script>
+// 注意必修带{}
+import {mapMutations} from 'vuex'
+export default {
+    name:'Count',
+    data(){
+        return {number:1}
+    }
+    methods:{
+        // add(){
+        //     // 不需要后端交互（额外处理），直接commit到Mutations
+        //     this.$store.commit('ADD',this.number);
+        // },
+    
+        /*
+        mapMutations借助计算属性映射到vuex的mutations，即包含$store.commit()
+            第一种写法：对象写法  ...mapMutations({ADD:'ADD'})//类似于结构体赋值
+            第二种写法：数组写法  ...mapMutations(['ADD'])//即代表vc中有函数add且映射的mutations中有函数add（区分大小写，ADD不对）
+        注意：vc中调用函数ADD必须带参数number，默认传递参数是event
+        */
+        ...mapMutations(['ADD']),
+        sub(){
+             // 不需要后端交互（额外处理），直接commit到Mutations
+            this.$store.commit('SUB',this.number);
+        }
+    }
+}
+</script>
+```
+
+> 注意：`mapMutations`中映射的函数调用时必须带自己的参数，默认是$event
+>
+> 有两种方式：
+>
+> + dom中调用传递参数`<button @click="ADD(number)">`（推荐）
+> + 创建一个中间函数，用于响应事件，然后调用`mapMutations`映射函数（脱裤子放屁，不推荐）
+
+### 6.3.8 `mapActions`
+
+同`mapMutations`
+
+将`vuex`中的`actions`中**指定函数**映射为组件vc的**对应名字函数**`methods`
+
+```vue
+<template>
+  <div>
+    <h2>当前求和为：{{sum}}</h2>
+    <h2>当前BigSum为：{{bigSum}}</h2>
+    <select v-model:value.number='number'>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+    </select>
+    <!-- $event获取当前事件，必须带参数不然是默认的事件 -->
+    <button @click="ADD(number)">+</button>
+    <button @click="sub">-</button>
+    <!-- $event获取当前事件，必须带参数不然是默认的事件 -->
+    <button @click="addOdd(number)">当前求和为奇数再加</button>
+  </div>
+</template>
+
+<script>
+// 注意必修带{}
+import {mapState,mapGetters,mapMutations, mapActions} from 'vuex'
+export default {
+    name:'Count',
+    data(){
+        return {number:1}
+    },
+    methods:{
+        // addOdd(){
+        //      // 可能后端交互（额外处理），分发到Actions
+        //     this.$store.dispatch('addOdd',this.number);
+        // },
+
+        /*
+        mapActions借助计算属性映射到vuex的mapActions，即包含$store.dispatch()
+            第一种写法：对象写法  ...mapActions({addOdd:'addOdd'})//类似于结构体赋值
+            第二种写法：数组写法  ...mapActions(['addOdd'])//即代表vc中有函数addOdd且映射的actions中有函数addOdd（区分大小写）
+        注意：vc中调用函数addOdd必须带参数number，默认传递参数是event
+        */
+       ...mapActions(['addOdd']),
+        }
+    }
+}
+</script>
+```
+
+> 注意：`mapActions`中映射的函数调用时必须带自己的参数，默认是$event
+>
+> 有两种方式：
+>
+> + dom中调用传递参数`<button @click="addOdd(number)">`（推荐）
+> + 创建一个中间函数，用于响应事件，然后调用`mapActions`映射函数（脱裤子放屁，不推荐）
+
+## 6.4 Vuex的安装使用
+
+**vuex被Store管理，而Store需要我们自己创建出来。**
+
+### 6.4.1 简单安装使用
+
++ 安装`vuex`
+
+  ```bash
+  # vue2用的是vuex3
+  npm i vuex@3
+  ```
+
++ 创建并暴露`Store` （文件名`store/index.js`）
+
+  ```javascript
+  //文件名store/index.js
+  import Vue from 'vue'
+  import Vuex from 'vuex'
+  
+  // 必选在创建Store前使用vuex，否则会报错
+  Vue.use(Vuex)
+  
+  // 创建actions对象--用于响应组件中的动作
+  const actions ={}
+  //创建mutations对象--用于操作状态/数据（state）
+  const mutations ={}
+  // 创建state对象--用于存储数据
+  const state ={}
+  
+  // 创建并暴露store （注意是Store对象而不是Vuex）
+  export default new Vuex.Store({
+      actions,//es6同名赋值简写
+      mutations,
+      state
+  })
+  ```
+
+  > 注意事项：
+  >
+  > + Store文件的存储方式
+  >
+  >   ```bash
+  >   # 官网的写法，创建Store目录和index.js文件夹（推荐）
+  >   D:.
+  >   │  App.vue
+  >   │  main.js
+  >   ├─components
+  >   │      Count.vue
+  >   └─Store
+  >           index.js
+  >    # 自定义写法
+  >    D:.
+  >   │  App.vue
+  >   │  main.js
+  >   ├─components
+  >   │      Count.vue
+  >   └─vuex
+  >           store.js
+  >   ```
+  >
+  > + **使用vuex插件使用必须在创建Store对象前，否则会报错。**而`import`语句会最先执行，所以把`Vue.use(Vuex)`从入口文件`main.js`移动到`store/index.js`中
+  >
+  >   <img src='img/Vue笔记/image-20230919111535240.png'>
+  >
+  > + 创建并暴露的是`Vuex.Store`而不是`Vuex`,`new`的时候要看清
+
++ 入门文件`main.js`配置使用`Vuex`
+
+  ```javascript
+  import Vue from 'vue'
+  import App from './App'
+  // 导入Store 等价于import store from './Store/index'
+  import store from './Store'
+  
+  new Vue({
+      render: h => h(App),
+      // 配置store
+      store,////es6同名赋值简写 s必须小写
+      beforeCreate(){
+          Vue.prototype.$bus=this
+      }
+  }).$mount('#app')
+  ```
+
+  > 注意事项
+  >
+  > + Vue属性store首字母必须小写
+  >
+  > + **store仅在引入并使用vuex时才会被挂载到vm和所有的vc身上**，即如果使用vuex，那么配置了store属性也不会生效
+  >
+  > + `import`导入默认去找`index.js`文件,webpack的默认配置
+  >
+  >   <img src='img/Vue笔记/image-20230919112354714.png'>
+
++ 运行
+
+  可以看到vm和所有的vm身上多了一个`$store`
+
+  <img src='img/Vue笔记/image-20230919112812166.png'>
+
+### 6.4.2 ***==详细使用==***
+
+#### 6.4.2.1 创建并暴露Store文件
+
+文件路径：src/store/index.js
+
+```javascript
+import Vue from 'vue'
+import Vuex from 'vuex'
+
+// 必选在创建Store前使用vuex，否则会报错
+Vue.use(Vuex)
+
+// 创建actions对象--用于响应组件中的动作
+const actions ={
+}
+//创建mutations对象--用于操作状态/数据（state）
+const mutations ={
+}
+// 创建state对象--用于存储数据
+const state ={
+}
+
+// 创建并暴露store （注意是Store对象而不是Vuex）
+export default new Vuex.Store({
+    actions,//es6同名赋值简写
+    mutations,
+    state
+})
+```
+
+#### 6.4.2.2 Vue配置开启Vuex
+
+文件路径：src/main.js
+
+```javascript
+import Vue from 'vue'
+import App from './App'
+// 导入Store 等价于import store from './Store/index'
+import store from './Store'
+
+Vue.config.productionTip = false;
+new Vue({
+    render: h => h(App),
+    // 配置store
+    store////es6同名赋值简写 s必须小写
+}).$mount('#app')
+```
+
+#### 6.4.2.3 组件中使用Vuex
+
+文件路径：src/components/Count.js
+
+```vue
+<template>
+  <div>
+    <h2>当前求和为：{{this.$store.state.sum}}</h2>
+    <select v-model:value.number='number'>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+    </select>
+    <button @click="add">+</button>
+    <button @click="sub">-</button>
+    <button @click="addOdd">当前求和为奇数再加</button>
+    <button @click="addWait">等一等再加</button>
+  </div>
+</template>
+
+<script>
+export default {
+    name:'Count',
+    data(){
+        return {
+            number:1
+        }
+    },
+    methods:{
+        add(){
+            // 不需要后端交互（额外处理），直接commit到Mutations
+            this.$store.commit('ADD',this.number);
+        },
+        sub(){
+             // 不需要后端交互（额外处理），直接commit到Mutations
+            this.$store.commit('SUB',this.number);
+        },
+        addOdd(){
+             // 可能后端交互（额外处理），分发到Actions
+            this.$store.dispatch('addOdd',this.number);
+        },
+        addWait(){
+            // 可能后端交互（额外处理），分发到Actions
+            this.$store.dispatch('addWait',this.number);
+        }
+    }
+}
+</script>
+<style scoped>
+*{
+    margin: 5px;
+}
+</style>
+```
+
+#### 6.4.2.4 配置Store文件中`Actions`,`Mutations`,`State`
+
+文件路径：src/store/index.js
+
+```javascript
+import Vue from 'vue'
+import Vuex from 'vuex'
+
+// 必选在创建Store前使用vuex，否则会报错
+Vue.use(Vuex)
+
+// 创建actions对象--用于响应组件中的动作
+const actions ={
+    // 第一个参数可以理解为mini $store，含有commit和state
+    addOdd(context,value){
+        if(context.state.sum % 2) {
+            context.commit('ADD',value);
+        }
+    },
+    addWait(context,value){
+        setTimeout(() => {
+            context.commit('ADD',value);
+        }, 1000);
+    }
+}
+//创建mutations对象--用于操作状态/数据（state）
+const mutations ={
+    //函数名推荐大写，与action区分 
+    // 第一个参数为state数据，第二个参数为增量
+    ADD(state,value){
+        state.sum += value;
+    },
+    SUB(state,value){
+        state.sum -= value;
+    }
+}
+// 创建state对象--用于存储数据
+const state ={
+    sum:0
+}
+
+// 创建并暴露store （注意是Store对象而不是Vuex）
+export default new Vuex.Store({
+    actions,//es6同名赋值简写
+    mutations,
+    state
+})
+```
+
+> **Actions在承上启下的位置，其第一个参数context（小$store）的样子如下：**
+>
+> <img src='img/Vue笔记/image-20230919143949858.png'>
+
+### 6.4.3 总结
+
++ 先创建vuex的store文件空架子
++ 配置开启vuex
++ 组件中使用vuex
++ 根据组件中的使用情况，去填充store文件`Actions`,`Mutations`,`State`
+
+## 6.5 ==***vuex模块化编码***==
+
+文档：https://v3.vuex.vuejs.org/zh/guide/modules.html#%E6%A8%A1%E5%9D%97%E7%9A%84%E5%B1%80%E9%83%A8%E7%8A%B6%E6%80%81
+
+为了让代码更好维护，让多种数据分类更加明确，所以需要引入vuex模块化编码：
+
+步骤：
+
++ 模块化，将vuex拆分为多个子文件
+
+  ```bash
+  D:.
+  │  App.vue
+  │  main.js
+  │
+  ├─components
+  │      Count.vue
+  │      Person.vue
+  │
+  └─Store
+          Count.js #vuex主文件
+          index.js # vuex模块化子文件1
+          Person.js# vuex模块化子文件2
+  ```
+
++ 子文件配置四大件`actions,mutations,state,getters`，并开启命名控件`namespaced:true`
+
+  ```javascript
+  //以index.js为例子
+  export default{
+      namespaced:true,
+      actions:{},
+      mutations:{},
+      state:{},
+      getters:{}
+  }
+  ```
+
++ veux主文件配置`modules`
+
+  ```javascript
+  import Vue from 'vue'
+  import Vuex from 'vuex'
+  // 引入模块组件
+  import CountInfo from './Count' 
+  import PersonInfo from './Person' 
+  // 必选在创建Store前使用vuex，否则会报错
+  Vue.use(Vuex)
+  
+  // 创建并暴露store （注意是Store对象而不是Vuex）
+  export default new Vuex.Store({
+      // 使用vuex 模块化
+      modules:{
+          CountInfo,
+          PersonInfo
+      }
+  })
+  ```
+
++ 开启命名空间后组件读取`State`数据
+
+  ```javascript
+  //方法1：常规方法
+  this.$store.state.命名空间的值.属性
+  //例 this.$store.state.CountInfo.sum
+  
+  //方法2; mapState映射
+  import {mapState} from 'vuex'
+  computed:{
+      ...mapState('命名空间的值',{computed变量名:state属性})
+      //例 ...mapState('CountInfo',['sum'])
+  }
+  ```
+
++ 开启命名空间后组件调用`Action`中`disatch`
+
+  ```javascript
+  //方法1：常规方法
+  this.$store.dispatch('命名空间的值/actions方法名',参数)
+  //例 this.$store.dispatch('CountInfo/addOdd',number)
+  //方法2; mapXXX映射
+  import {mapActions} from 'vuex'
+  methods:{
+      //缺点：必须在dom标签中调用时来传参
+      ...mapActions('命名空间的值',{methods函数名字:actions中方法})
+      //例 ...mapActions('CountInfo',['addOdd'])
+  }
+  ```
+
++ 开启命名空间后组件调用`Mutations`中`commit`
+
+  ```javascript
+  //方法1：常规方法
+  this.$store.commit('命名空间的值/mutations方法',参数)
+  //例 this.$store.commit('CountInfo/SUB',number)
+  //方法2; mapXXX映射
+  import {mapMutations} from 'vuex'
+  medthods:{
+      //缺点：必须在dom标签中调用时来传参
+      ...mapMutations('命名空间的值',{medthods函数名字:mutations中函数名})
+      //例 ...mapMutations('CountInfo',{sub:'SUB'})
+  }
+  ```
+
++ 开启命名空间后组件读取`getters`数据
+
+  ```javascript
+  //方法1：常规方法
+  this.$store.getters['命名空间的值/getters中方法']
+  //例 this.$store.getters['CountInfo/bigSum']
+  //方法2; mapXXX映射
+  import {mapGetters} from 'vuex'
+  computed:{
+      ...mapGetters('命名空间的值',{computed变量名字:getters中方法})
+      //例 ...mapGetters('CountInfo',['bigSum'])
+  }
+  ```
+
++ vuex模块化后`$store`数据结构
+
+<img src='img/Vue笔记/image-20230921134916632.png'>
 
 # 7、Vue-router
 
