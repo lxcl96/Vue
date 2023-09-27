@@ -5938,5 +5938,207 @@ npm run build
 
 # 10、Vue UI组件库
 
+## 10.1 组件库
 
+### 10.1.1 移动端组件库
 
+参考
+
++ Vant https://youzan.github.io/vant
++ Cube UI https://didi.github.io/cube-ui
++ Mint UI http://mint-ui.github.io
+
+### 10.1.2 PC端组件库
+
+参考
+
++ Element UI https://element.eleme.cn
++ IView UI https://www.iviewui.com
+
+## 10.2 ElementUI简单使用
+
+地址：https://element.eleme.cn/#/zh-CN/component/installation
+
+### 10.2.1 完整引入
+
++ 安装ElementUI
+
+  ```bash
+  npm i element-ui
+  ```
+
++ 入口文件`main.js`引入该插件
+
+  ```javascript
+  import Vue from 'vue'
+  import App from './App.vue'
+  // 引入全部的elementui库
+  import ElementUI from 'element-ui';
+  import 'element-ui/lib/theme-chalk/index.css';
+  
+  // 使用ElementUI插件库
+  Vue.use(ElementUI);
+  
+  Vue.config.productionTip = false
+  new Vue({
+      // h其实就是createElement
+      render:h=>h(App)
+  }).$mount('#app')
+  ```
+
++ `App.vue`组件中使用ElementUI
+
+  ```vue
+  <template>
+  <div>
+    原生按钮：<button></button> <br>
+    <el-row>
+      <el-button>默认按钮</el-button>
+      <el-button type="primary">主要按钮</el-button>
+      <el-button type="success">成功按钮</el-button>
+      <el-button type="info">信息按钮</el-button>
+      <el-button type="warning">警告按钮</el-button>
+      <el-button type="danger">危险按钮</el-button>
+    </el-row>
+    <el-row>
+      <el-button icon="el-icon-search" circle></el-button>
+      <el-button type="primary" icon="el-icon-edit" circle></el-button>
+      <el-button type="success" icon="el-icon-check" circle></el-button>
+      <el-button type="info" icon="el-icon-message" circle></el-button>
+      <el-button type="warning" icon="el-icon-star-off" circle></el-button>
+      <el-button type="danger" icon="el-icon-delete" circle></el-button>
+    </el-row>
+  </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'App'
+  }
+  </script>
+  ```
+
++ 运行测试
+
+  <img src='img/Vue笔记/image-20230927110817347.png'>
+
+### 10.2.2 按需引入
+
++ 安装ElementUI
+
++ 修改`babel`配置
+
+  文档：https://element.eleme.cn/#/zh-CN/component/quickstart
+
+  + 安装`babel-plugin-component`组件
+
+    ```bash
+    npm install babel-plugin-component -D
+    ```
+
+  + 修改` .babelrc `（在vue中就是`babel.config.js`，追加而不是覆盖）
+
+    ```javascript
+    module.exports = {
+      presets: [
+        '@vue/cli-plugin-babel/preset',
+        ["es2015", { "modules": false }]
+      ],
+      "plugins": [
+        [
+          "component",
+          {
+            "libraryName": "element-ui",
+            "styleLibraryName": "theme-chalk"
+          }
+        ]
+      ]
+    }
+    ```
+
++ 入口文件`main.js`引入需要的插件
+
+  ```javascript
+  import Vue from 'vue'
+  import App from './App.vue'
+  // 引入需要的elementui库(用到什么标签就去掉el然后首字母大写)
+  import {Button,Row} from 'element-ui'
+  //样式就不许单独引入了，会自动按需引入
+  
+  
+  // 使用需要的插件库，注册为全局组件,
+  //第一个为组件名，默认是<el-button>当然你可以自定义，那么使用时就需要保持一致
+  Vue.component(Button.name,Button)
+  Vue.component('ly-row',Row)
+  
+  
+  Vue.config.productionTip = false
+  new Vue({
+      // h其实就是createElement
+      render:h=>h(App)
+  }).$mount('#app')
+  ```
+
++ `App.vue`组件中使用
+
+  ```vue
+  <template>
+  <div>
+    原生按钮：<button>你好</button> <br>
+    <!-- 注册什么组件用什么名字，就用什么 -->
+    <ly-row>
+      <el-button>默认按钮</el-button>
+      <el-button type="primary">主要按钮</el-button>
+      <el-button type="success">成功按钮</el-button>
+      <el-button type="info">信息按钮</el-button>
+      <el-button type="warning">警告按钮</el-button>
+      <el-button type="danger">危险按钮</el-button>
+    </ly-row>
+    <ly-row>
+      <el-button icon="el-icon-search" circle></el-button>
+      <el-button type="primary" icon="el-icon-edit" circle></el-button>
+      <el-button type="success" icon="el-icon-check" circle></el-button>
+      <el-button type="info" icon="el-icon-message" circle></el-button>
+      <el-button type="warning" icon="el-icon-star-off" circle></el-button>
+      <el-button type="danger" icon="el-icon-delete" circle></el-button>
+    </ly-row>
+  </div>
+  </template>
+  
+  <script>
+  export default {
+      name:'App'
+  }
+  </script>
+  ```
+
++ 尝试启动，报错`Error: Cannot find module 'babel-preset-es2015'`，重新修改`babel-config.js`文件
+
+  参考连接：[element-ui按需引入报错 Error: Cannot find module ‘babel-preset-es2015‘_element按需引入cannot find module '@element-plus/icons-CSDN博客](https://blog.csdn.net/zy21131437/article/details/108029284)
+
+  ```javascript
+  module.exports = {
+    presets: [
+      '@vue/cli-plugin-babel/preset',
+      // ["es2015", { "modules": false }],
+      ["@babel/preset-env", { "modules": false }]//替换上面的
+    ],
+    "plugins": [
+      [
+        "component",
+        {
+          "libraryName": "element-ui",
+          "styleLibraryName": "theme-chalk"
+        }
+      ]
+    ]
+  }
+  ```
+
++ 测试运行
+
+  <img src='img/Vue笔记/image-20230927112824488.png'>
+
+### 10.2.3 比较
+
+**完整引入**会引入elementUI的所有组件，导致js文件过大，影响效率。而**按需引入**可以避免这个问题。
